@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customers | Smart Loan Management</title>
+<!-- Bootstrap -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<!-- Global Styles -->
+<link rel="stylesheet" href="style.css">
+<style>
+*{ margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
+body{ background:#f4f7fb; }
+/* Sidebar */
+.sidebar{ position:fixed; top:0; left:0; width:250px; height:100vh; background:#0d6efd; padding-top:20px; color:white; z-index: 1000; display: flex; flex-direction: column; }
+.sidebar h3{ text-align:center; margin-bottom:30px; font-weight:bold; }
+.sidebar a{ display:block; padding:15px 25px; color:white; text-decoration:none; transition:.3s; cursor:pointer;}
+.sidebar a:hover, .sidebar a.active{ background:rgba(255,255,255,.15); padding-left:35px; }
+.sidebar i{ margin-right:10px; }
+/* Main */
+.main{ margin-left:250px; }
+/* Navbar */
+.topbar{ background:white; padding:15px 30px; box-shadow:0 3px 10px rgba(0,0,0,.08); display:flex; justify-content:space-between; align-items:center; }
+.topbar h4{ margin:0; }
+.profile{ display:flex; align-items:center; gap:10px; }
+/* Cards */
+.dashboard{ padding:30px; }
+.card{ border:none; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,.08); transition:.3s; }
+.card:hover{ transform:translateY(-5px); }
+.icon{ font-size:40px; }
+.loan{ color:#0d6efd; }
+.customer{ color:#198754; }
+.emi{ color:#ffc107; }
+.risk{ color:#dc3545; }
+/* Alerts */
+.loan-alert { background: #fff3cd; color: #856404; border-left: 4px solid #ffeeba; padding: 15px; margin-bottom: 15px; border-radius: 5px; }
+/* AI Floating Button */
+#aiVoiceBtn {
+    position: fixed;
+    bottom: 80px;
+    right: 40px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6f42c1, #0d6efd);
+    color: white;
+    font-size: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    cursor: pointer;
+    z-index: 9999;
+    border: none;
+    transition: 0.3s;
+}
+#aiVoiceBtn:hover { transform: scale(1.1); }
+#aiVoiceBtn.listening {
+    animation: pulse 1.5s infinite;
+    background: linear-gradient(135deg, #dc3545, #fd7e14);
+}
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+    70% { box-shadow: 0 0 0 15px rgba(220, 53, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+}
+/* AI Insights Panel */
+.ai-insights-panel {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-left: 5px solid #6f42c1;
+}
+.ai-icon-bg {
+    background: #6f42c1;
+    color: white;
+    padding: 10px;
+    border-radius: 10px;
+    display: inline-block;
+}
+</style>
+</head>
+<body>
+<!-- Sidebar -->
+<div class="sidebar">
+<div>
+<h3><i class="bi bi-bank2"></i> Smart Loan</h3>
+<a href="dashboard.html" class=""><i class="bi bi-speedometer2"></i> Dashboard</a>
+<a href="customers.html" class="admin-only"><i class="bi bi-people"></i> Customers</a>
+<a href="loans.html" class=""><i class="bi bi-cash-stack"></i> <span id="sidebarLoansText">My Loans</span></a>
+<a href="emi.html" class=""><i class="bi bi-credit-card"></i> Repayments</a>
+<a href="ai-insights.html" class=""><i class="bi bi-cpu"></i> AI Insights</a>
+<a href="profile.html" class=""><i class="bi bi-person"></i> Profile</a>
+<a href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Logout</a>
+</div>
+
+<!-- AI Help Card pushed to bottom -->
+<div class="mt-auto p-3 mb-5 mx-3 rounded" style="background: rgba(255, 255, 255, 0.15);">
+    <h6 class="text-white fw-bold"><i class="bi bi-robot me-2"></i>Need Help?</h6>
+    <p class="text-white-50" style="font-size: 0.85rem; margin-bottom: 10px;">Ask our AI assistant about your loans and EMIs.</p>
+    <button class="btn btn-light btn-sm w-100 fw-bold text-primary" onclick="if(window.toggleVoiceAssistant) toggleVoiceAssistant();">
+        <i class="bi bi-mic-fill me-1"></i> Talk to AI
+    </button>
+</div>
+</div>
+
+<!-- Main Content -->
+<div class="main">
+<!-- Top Navbar -->
+<div class="topbar">
+<div>
+<h4 id="pageTitle">Customers</h4>
+<small class="text-muted" id="welcomeMsg">Welcome back</small>
+</div>
+<div class="profile">
+<i class="bi bi-bell-fill fs-4 text-secondary"></i>
+<div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center" style="width:45px;height:45px;font-size:20px;" id="profileAvatar">C</div>
+</div>
+</div>
+
+<!-- Customers Content -->
+<div class="dashboard">
+    <!-- Alert Container -->
+    <div id="alertContainer"></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 id="customersHeaderTitle">All Customers</h5>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle text-center">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>ID</th>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Email</th>
+                            <th>Mobile</th>
+                            <th>Role</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customersTableBody">
+                        <tr><td colspan="6" class="text-center text-muted">Loading customers...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addLoanModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Loan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addLoanForm">
+                    <div class="mb-3">
+                        <label class="form-label">Customer ID</label>
+                        <input type="number" class="form-control" id="addCustomerId" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Loan Type</label>
+                        <select class="form-select" id="addLoanType" required>
+                            <option value="Personal Loan">Personal Loan</option>
+                            <option value="Home Loan">Home Loan</option>
+                            <option value="Auto Loan">Auto Loan</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Loan Amount</label>
+                        <input type="number" class="form-control" id="addLoanAmount" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Interest Rate (%)</label>
+                        <input type="number" step="0.1" class="form-control" id="addInterestRate" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tenure (Months)</label>
+                        <input type="number" class="form-control" id="addTenure" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100" id="submitLoanBtn">Add Loan</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
+<!-- Main Content -->
+<div class="main">
+<!-- Top Navbar -->
+<div class="topbar">
+<div>
+<h4 id="pageTitle">Customers</h4>
+<small class="text-muted" id="welcomeMsg">Welcome back</small>
+</div>
+<div class="profile">
+<i class="bi bi-bell-fill fs-4 text-secondary"></i>
+<div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center" style="width:45px;height:45px;font-size:20px;" id="profileAvatar">C</div>
+</div>
+</div>
+
+<!-- Dashboard -->
+<div class="dashboard">
+
+<!-- Alert Container -->
+<div id="alertContainer"></div>
+
+<!-- Summary Cards -->
+<div class="row g-4">
+<!-- Active Loans -->
+<div class="col-md-3">
+<div class="card p-4 h-100">
+<div class="d-flex justify-content-between">
+<div>
+<h6>Active Loans</h6>
+<h2 id="activeLoansCount">0</h2>
+</div>
+<div class="icon loan"><i class="bi bi-cash-stack"></i></div>
+</div>
+</div>
+</div>
+<!-- Total Outstanding -->
+<div class="col-md-3">
+<div class="card p-4 h-100">
+<div class="d-flex justify-content-between">
+<div>
+<h6>Outstanding Balance</h6>
+<h2 id="totalOutstanding">?0</h2>
+</div>
+<div class="icon risk"><i class="bi bi-wallet2"></i></div>
+</div>
+</div>
+</div>
+<!-- Next EMI -->
+<div class="col-md-3">
+<div class="card p-4 h-100">
+<div class="d-flex justify-content-between">
+<div>
+<h6>Next EMI Amount</h6>
+<h2 id="nextEmiAmount">?0</h2>
+<small class="text-muted" id="nextEmiDate">No pending EMI</small>
+</div>
+<div class="icon emi"><i class="bi bi-calendar-event"></i></div>
+</div>
+</div>
+</div>
+<!-- Total Paid -->
+<div class="col-md-3">
+<div class="card p-4 h-100">
+<div class="d-flex justify-content-between">
+<div>
+<h6>Total Paid Back</h6>
+<h2 id="totalPaid">?0</h2>
+</div>
+<div class="icon customer"><i class="bi bi-graph-up-arrow"></i></div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- AI Insights Panel -->
+<div class="row mt-4">
+<div class="col-lg-12">
+<div class="card p-4 ai-insights-panel">
+<div class="d-flex align-items-center mb-3">
+<div class="ai-icon-bg me-3"><i class="bi bi-robot fs-4"></i></div>
+<h4 class="mb-0" style="color: #6f42c1;">AI Financial Insights</h4>
+</div>
+<div id="aiInsightsContent">
+<p class="text-muted mb-0"><i class="spinner-border spinner-border-sm me-2"></i> Analyzing your financial data...</p>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Tables -->
+<div class="row mt-4">
+<!-- My Loans Table -->
+<div class="col-lg-12 mb-4">
+<div class="card p-4">
+<h4 class="mb-3"><i class="bi bi-card-checklist text-primary me-2"></i>My Loan Accounts</h4>
+<div class="table-responsive">
+<table class="table table-hover align-middle">
+<thead class="table-light">
+<tr>
+<th>Loan ID</th>
+<th>Loan Type</th>
+<th>Principal Amount</th>
+<th>Outstanding</th>
+<th>Tenure</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody id="myLoansBody">
+<tr><td colspan="6" class="text-center text-muted">Loading your loans...</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+
+<div class="row mt-2">
+<!-- My EMI Schedule Table -->
+<div class="col-lg-12">
+<div class="card p-4">
+<div class="d-flex justify-content-between align-items-center mb-3">
+<h4><i class="bi bi-calendar3 text-warning me-2"></i>My EMI Schedule</h4>
+<select id="loanSelector" class="form-select w-auto" onchange="loadEMISchedule(this.value)">
+<option value="">Select a Loan...</option>
+</select>
+</div>
+<div class="table-responsive">
+<table class="table table-hover align-middle">
+<thead class="table-light">
+<tr>
+<th>Installment</th>
+<th>Due Date</th>
+<th>EMI Amount</th>
+<th>Principal</th>
+<th>Interest</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="emiScheduleBody">
+<tr><td colspan="7" class="text-center text-muted">Select a loan to view EMI schedule</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- Floating AI Voice Button -->
+<button id="aiVoiceBtn" onclick="toggleVoiceAssistant()" title="Ask AI a question!">
+<i class="bi bi-mic-fill"></i>
+</button>
+
+<!-- AI Voice Listening Modal -->
+<div class="modal fade" id="voiceModal" tabindex="-1" aria-hidden="true">
+<div class="modal-dialog modal-dialog-centered">
+<div class="modal-content text-center p-4" style="background: rgba(255,255,255,0.95); border-radius: 20px;">
+<div class="modal-body">
+<div class="mb-4">
+<div class="spinner-grow text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+</div>
+<h4 id="voiceModalTitle" class="mb-3">I'm listening...</h4>
+<p id="voiceModalTranscript" class="text-muted fst-italic" style="min-height: 24px;">...</p>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Modal for Payment Success -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
+<div class="modal-dialog modal-dialog-centered">
+<div class="modal-content text-center p-4">
+<div class="modal-body">
+<i class="bi bi-check-circle-fill text-success" style="font-size: 60px;"></i>
+<h3 class="mt-3">Payment Successful!</h3>
+<p class="text-muted" id="paymentModalText">Your EMI has been marked as paid.</p>
+<button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal">Great!</button>
+</div>
+</div>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="customers.js"></script>
+</body>
+</html>
+
