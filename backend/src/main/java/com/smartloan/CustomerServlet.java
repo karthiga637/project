@@ -54,9 +54,12 @@ public class CustomerServlet extends HttpServlet {
             if ("BankManager".equals(role)) {
                 generatedPwd = (String) data.get("password");
                 int bankId = Integer.parseInt(data.get("bank_id").toString());
-                ok = dao.addBankManager(fn, ln, em, mob, generatedPwd, bankId);
+                String city = data.containsKey("city") ? (String) data.get("city") : "";
+                String branch = data.containsKey("branch") ? (String) data.get("branch") : "";
+                String address = city.isEmpty() ? branch : city + " - " + branch;
+                ok = dao.addBankManager(fn, ln, em, mob, generatedPwd, bankId, address);
                 if (ok) {
-                    emailSent = EmailService.sendWelcomeEmail(em, fn + " " + ln, generatedPwd);
+                    emailSent = false; // Email sending removed per user request
                 }
             } else {
                 String adr = (String) data.get("address");
@@ -64,7 +67,35 @@ public class CustomerServlet extends HttpServlet {
                 double inc = data.containsKey("income") && data.get("income") != null && !data.get("income").toString().isEmpty() ? Double.parseDouble(data.get("income").toString()) : 0;
                 String lt  = (String) data.get("loanType");
                 String dob = (String) data.get("dob");
-                ok = dao.addCustomer(fn, ln, em, mob, adr, occ, inc, lt, dob);
+                if (dob == null || dob.trim().isEmpty()) {
+                    dob = "2000-01-01";
+                }
+                Integer customerBankId = null;
+                String branchName = null;
+                if (data.containsKey("branch_name") && data.get("branch_name") != null && !data.get("branch_name").toString().trim().isEmpty()) {
+                    branchName = data.get("branch_name").toString().trim();
+                }
+                if (data.containsKey("manager_email") && data.get("manager_email") != null && !data.get("manager_email").toString().isEmpty()) {
+                    String mgrEmail = data.get("manager_email").toString();
+                    Map<String, Object> mgr = dao.getCustomerByEmail(mgrEmail);
+                    if (mgr != null) {
+                        if (mgr.containsKey("bank_id") && mgr.get("bank_id") != null) {
+                            customerBankId = Integer.parseInt(mgr.get("bank_id").toString());
+                        }
+                        if (branchName == null || branchName.isEmpty()) {
+                            if (mgr.containsKey("address") && mgr.get("address") != null && !mgr.get("address").toString().trim().isEmpty()) {
+                                branchName = mgr.get("address").toString().trim();
+                            } else if (mgr.containsKey("branch_name") && mgr.get("branch_name") != null && !mgr.get("branch_name").toString().trim().isEmpty()) {
+                                branchName = mgr.get("branch_name").toString().trim();
+                            }
+                        }
+                    }
+                }
+                if (customerBankId == null && data.containsKey("bank_id") && data.get("bank_id") != null && !data.get("bank_id").toString().isEmpty()) {
+                    customerBankId = Integer.parseInt(data.get("bank_id").toString());
+                }
+                String mgrEmail = data.containsKey("manager_email") && data.get("manager_email") != null ? data.get("manager_email").toString() : null;
+                ok = dao.addCustomer(fn, ln, em, mob, adr, occ, inc, lt, dob, customerBankId, branchName, mgrEmail);
             }
             
             if (ok && "BankManager".equals(role)) {
@@ -72,6 +103,32 @@ public class CustomerServlet extends HttpServlet {
             } else {
                 res.getWriter().write(ok ? "{\"status\":\"success\"}" : "{\"status\":\"failed\"}");
             }
+        } catch (Exception e) {
+            res.setStatus(500);
+            res.getWriter().write("{\"status\":\"error\",\"message\":\"" + e.getMessage() + "\"}");
+        }
+    }
+
+    // PUT /customers → update customer profile
+    protected void doPut(HttpServletRequest req, HttpServletResponse res)
+            throws ServletException, IOException {
+        cors(res);
+        String json = readBody(req);
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            java.util.Map<String, Object> data = mapper.readValue(json, java.util.Map.class);
+
+            int id = Integer.parseInt(data.get("id").toString());
+            String fn = (String) data.get("firstName");
+            String ln = (String) data.get("lastName");
+            String mob = (String) data.get("mobile");
+            String adr = (String) data.get("address");
+            String occ = (String) data.get("occupation");
+            double inc = data.containsKey("income") && data.get("income") != null && !data.get("income").toString().isEmpty() 
+                        ? Double.parseDouble(data.get("income").toString()) : 0;
+
+            boolean ok = dao.updateCustomer(id, fn, ln, mob, adr, occ, inc);
+            res.getWriter().write(ok ? "{\"status\":\"success\"}" : "{\"status\":\"failed\"}");
         } catch (Exception e) {
             res.setStatus(500);
             res.getWriter().write("{\"status\":\"error\",\"message\":\"" + e.getMessage() + "\"}");

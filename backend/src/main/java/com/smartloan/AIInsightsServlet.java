@@ -10,11 +10,12 @@ import jakarta.servlet.http.*;
 public class AIInsightsServlet extends HttpServlet {
 
     private final LoanDAO dao = new LoanDAO();
+    private final AIInsightsService aiService = new AIInsightsService();
 
     private void cors(HttpServletResponse res) {
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-        res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
+        res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
     }
@@ -22,9 +23,53 @@ public class AIInsightsServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse res)
             throws ServletException, IOException {
         cors(res);
+        String action = req.getParameter("action");
+        if ("recommend".equalsIgnoreCase(action)) {
+            double income = 0;
+            try {
+                income = Double.parseDouble(req.getParameter("income"));
+            } catch (Exception ignored) {}
+            String occ = req.getParameter("occupation");
+            String goal = req.getParameter("goal");
+            Map<String, Object> rec = aiService.recommendLoan(income, occ, goal);
+            res.getWriter().write(mapToJson(rec));
+            return;
+        }
+
+        if ("eligibility".equalsIgnoreCase(action)) {
+            double income = 0;
+            double amount = 0;
+            int tenure = 24;
+            double rate = 10.5;
+            try {
+                if (req.getParameter("income") != null) income = Double.parseDouble(req.getParameter("income"));
+                if (req.getParameter("loanAmount") != null) amount = Double.parseDouble(req.getParameter("loanAmount"));
+                if (req.getParameter("tenure") != null) tenure = Integer.parseInt(req.getParameter("tenure"));
+                if (req.getParameter("rate") != null) rate = Double.parseDouble(req.getParameter("rate"));
+            } catch (Exception ignored) {}
+            Map<String, Object> elig = aiService.predictEligibility(income, amount, tenure, rate);
+            res.getWriter().write(mapToJson(elig));
+            return;
+        }
+
+        if ("urgency".equalsIgnoreCase(action)) {
+            int days = 0;
+            try {
+                days = Integer.parseInt(req.getParameter("daysOverdue"));
+            } catch (Exception ignored) {}
+            Map<String, Object> urg = aiService.getEMIUrgency(days);
+            res.getWriter().write(mapToJson(urg));
+            return;
+        }
+
         dao.markOverdueEMIs();
         List<Map<String, Object>> riskData = dao.getRiskAssessment();
         res.getWriter().write(listToJson(riskData));
+    }
+
+    protected void doPost(HttpServletRequest req, HttpServletResponse res)
+            throws ServletException, IOException {
+        doGet(req, res);
     }
 
     protected void doOptions(HttpServletRequest req, HttpServletResponse res)

@@ -104,6 +104,20 @@ placeholder="Enter your email"
 required>
 </div>
 
+<div class="mb-3">
+<label class="form-label">
+Mobile Number
+</label>
+<input
+type="text"
+id="mobile"
+class="form-control"
+placeholder="Enter your mobile number"
+maxlength="10"
+oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)"
+required>
+</div>
+
 <div class="row">
 <div class="col-md-6 mb-3">
 <label class="form-label">
@@ -158,6 +172,28 @@ Create Account
 
 
 
+<!-- Google Sign-In -->
+<div class="text-center my-3">
+<span class="text-muted">OR</span>
+</div>
+
+<div id="g_id_onload"
+     data-client_id="697184104879-hup3op2d2o89dfot00v3ojk5h2bguv6m.apps.googleusercontent.com"
+     data-context="signup"
+     data-ux_mode="popup"
+     data-callback="handleGoogleLogin"
+     data-auto_prompt="false">
+</div>
+
+<div class="g_id_signin mb-4 d-flex justify-content-center"
+     data-type="standard"
+     data-shape="rectangular"
+     data-theme="outline"
+     data-text="signup_with"
+     data-size="large"
+     data-logo_alignment="left">
+</div>
+
 <div class="text-center">
 Already have an account?
 <a href="login.html">
@@ -171,6 +207,34 @@ Login Here
 </div>
 
 <script src="register.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<!-- OTP Verification Modal -->
+<div class="modal fade" id="otpModal" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold">Email Verification</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center pb-5">
+        <p class="text-muted mb-4">We've sent a 4-digit code to your email.<br>Please enter it below to verify your account.</p>
+        
+        <div class="d-flex justify-content-center gap-2 mb-4">
+          <input type="text" class="form-control otp-input text-center fs-4 fw-bold" id="otp1" maxlength="1" style="width: 50px; height: 60px;">
+          <input type="text" class="form-control otp-input text-center fs-4 fw-bold" id="otp2" maxlength="1" style="width: 50px; height: 60px;">
+          <input type="text" class="form-control otp-input text-center fs-4 fw-bold" id="otp3" maxlength="1" style="width: 50px; height: 60px;">
+          <input type="text" class="form-control otp-input text-center fs-4 fw-bold" id="otp4" maxlength="1" style="width: 50px; height: 60px;">
+        </div>
+        
+        <div id="otpMsg" class="alert alert-danger" style="display:none; font-size:14px;"></div>
+        
+        <button class="btn btn-primary w-100 py-2 mb-3" onclick="verifyOTPAndRegister()">Verify & Register</button>
+        <p class="text-muted small mb-0">Didn't receive the code? <a href="#" onclick="resendOTP()" class="text-decoration-none">Resend</a></p>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Simulated Google Login Modal -->
 <div class="modal fade" id="googleLoginModal" tabindex="-1" aria-labelledby="googleLoginModalLabel" aria-hidden="true">

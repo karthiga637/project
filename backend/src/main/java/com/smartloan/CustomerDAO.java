@@ -31,12 +31,12 @@ public class CustomerDAO {
     }
 
     // Add Bank Manager
-    public boolean addBankManager(String firstName, String lastName, String email, String mobile, String password, int bankId) throws Exception {
+    public boolean addBankManager(String firstName, String lastName, String email, String mobile, String password, int bankId, String address) throws Exception {
         if (emailExists(email)) {
             throw new Exception("Email already exists");
         }
         try (Connection con = DBConnection.getConnection()) {
-            String sql = "INSERT INTO customers (first_name, last_name, email, mobile, password, role, bank_id) VALUES (?,?,?,?,?,?,?)";
+            String sql = "INSERT INTO customers (first_name, last_name, email, mobile, password, role, bank_id, address) VALUES (?,?,?,?,?,?,?,?)";
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setString(1, firstName);
             ps.setString(2, lastName);
@@ -45,6 +45,7 @@ public class CustomerDAO {
             ps.setString(5, password);
             ps.setString(6, "BankManager");
             ps.setInt(7, bankId);
+            ps.setString(8, address);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -91,36 +92,41 @@ public class CustomerDAO {
     public boolean register(String firstName, String lastName, String email,
                             String mobile, String password, String role) {
         try (Connection con = DBConnection.getConnection()) {
-            // Check if email already exists
+            // Check if email was pre-approved by Bank Manager
             PreparedStatement check = con.prepareStatement(
                 "SELECT id FROM customers WHERE email=?");
             check.setString(1, email);
-            if (check.executeQuery().next()) return false;
-
-            String sql = "INSERT INTO customers (first_name, last_name, email, mobile, password, role) VALUES (?,?,?,?,?,?)";
-            PreparedStatement ps = con.prepareStatement(sql);
-            ps.setString(1, firstName);
-            ps.setString(2, lastName);
-            ps.setString(3, email);
-            ps.setString(4, mobile);
-            ps.setString(5, password);
-            ps.setString(6, role);
-            return ps.executeUpdate() > 0;
+            ResultSet rs = check.executeQuery();
+            if (rs.next()) {
+                // Email exists (Pre-approved by Bank Manager) -> Update details and password
+                String sql = "UPDATE customers SET first_name=?, last_name=?, mobile=?, password=?, role=? WHERE email=?";
+                PreparedStatement ps = con.prepareStatement(sql);
+                ps.setString(1, firstName);
+                ps.setString(2, lastName);
+                ps.setString(3, mobile);
+                ps.setString(4, password);
+                ps.setString(5, role != null && !role.isEmpty() ? role : "Customer");
+                ps.setString(6, email);
+                return ps.executeUpdate() > 0;
+            } else {
+                // Email NOT pre-approved by Bank Manager -> Block self registration
+                return false;
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
     }
 
-    // ── Add Customer (by admin) ────────────────────────────────────────────────
+    // ── Add Customer (by Bank Manager / Admin) ──────────────────────────────────
     public boolean addCustomer(String firstName, String lastName, String email,
                                String mobile, String address, String occupation,
-                               double income, String loanType, String dob) throws Exception {
+                               double income, String loanType, String dob, Integer bankId, String branchName, String managerEmail) throws Exception {
         if (emailExists(email)) {
             throw new Exception("Email already exists");
         }
         try (Connection con = DBConnection.getConnection()) {
-            String sql = "INSERT INTO customers (first_name, last_name, email, mobile, address, occupation, monthly_income, preferred_loan_type, dob, password, role) VALUES (?,?,?,?,?,?,?,?,?,?,'Customer')";
+            String sql = "INSERT INTO customers (first_name, last_name, email, mobile, address, occupation, monthly_income, preferred_loan_type, dob, password, role, bank_id, branch_name, manager_email) VALUES (?,?,?,?,?,?,?,?,?,?,'Customer',?,?,?)";
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setString(1, firstName);
             ps.setString(2, lastName);
@@ -130,17 +136,46 @@ public class CustomerDAO {
             ps.setString(6, occupation);
             ps.setDouble(7, income);
             ps.setString(8, loanType);
-            ps.setString(9, dob);
-            ps.setString(10, "Welcome123"); // Default password
+            if (dob == null || dob.trim().isEmpty()) {
+                ps.setString(9, "2000-01-01");
+            } else {
+                ps.setString(9, dob.trim());
+            }
+            ps.setString(10, "UNREGISTERED"); // Customer sets their own password during registration
+            if (bankId != null && bankId > 0) {
+                ps.setInt(11, bankId);
+            } else {
+                ps.setNull(11, java.sql.Types.INTEGER);
+            }
+            ps.setString(12, branchName);
+            ps.setString(13, managerEmail);
             return ps.executeUpdate() > 0;
         }
     }
 
+    public boolean addCustomer(String firstName, String lastName, String email,
+                               String mobile, String address, String occupation,
+                               double income, String loanType, String dob, Integer bankId, String branchName) throws Exception {
+        return addCustomer(firstName, lastName, email, mobile, address, occupation, income, loanType, dob, bankId, branchName, null);
+    }
+
+    public boolean addCustomer(String firstName, String lastName, String email,
+                               String mobile, String address, String occupation,
+                               double income, String loanType, String dob, Integer bankId) throws Exception {
+        return addCustomer(firstName, lastName, email, mobile, address, occupation, income, loanType, dob, bankId, null, null);
+    }
+
+    public boolean addCustomer(String firstName, String lastName, String email,
+                               String mobile, String address, String occupation,
+                               double income, String loanType, String dob) throws Exception {
+        return addCustomer(firstName, lastName, email, mobile, address, occupation, income, loanType, dob, null, null, null);
+    }
+
     // ── Get All Customers ──────────────────────────────────────────────────────
-    public List<Map<String, Object>> getAllCustomers() {
+     public List<Map<String, Object>> getAllCustomers() {
         List<Map<String, Object>> list = new ArrayList<>();
         try (Connection con = DBConnection.getConnection()) {
-            String sql = "SELECT id, first_name, last_name, email, mobile, occupation, monthly_income, preferred_loan_type, created_at FROM customers ORDER BY id DESC";
+            String sql = "SELECT id, first_name, last_name, email, mobile, role, bank_id, address, occupation, monthly_income, preferred_loan_type, created_at, branch_name, manager_email FROM customers ORDER BY id DESC";
             PreparedStatement ps = con.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -150,10 +185,15 @@ public class CustomerDAO {
                 row.put("lastName", rs.getString("last_name"));
                 row.put("email", rs.getString("email"));
                 row.put("mobile", rs.getString("mobile"));
+                row.put("role", rs.getString("role"));
+                row.put("bank_id", rs.getInt("bank_id"));
+                row.put("address", rs.getString("address"));
                 row.put("occupation", rs.getString("occupation"));
                 row.put("income", rs.getDouble("monthly_income"));
                 row.put("loanType", rs.getString("preferred_loan_type"));
                 row.put("createdAt", rs.getString("created_at"));
+                row.put("branch_name", rs.getString("branch_name"));
+                row.put("manager_email", rs.getString("manager_email"));
                 list.add(row);
             }
         } catch (Exception e) {
@@ -163,6 +203,30 @@ public class CustomerDAO {
     }
 
     // ── Get Customer By Email ──────────────────────────────────────────────────
+    
+    public Map<String, Object> getCustomerById(int id) {
+        try (java.sql.Connection con = DBConnection.getConnection()) {
+            java.sql.PreparedStatement ps = con.prepareStatement("SELECT * FROM customers WHERE id=?");
+            ps.setInt(1, id);
+            java.sql.ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                Map<String, Object> map = new java.util.HashMap<>();
+                map.put("id", rs.getInt("id"));
+                map.put("firstName", rs.getString("first_name"));
+                map.put("lastName", rs.getString("last_name"));
+                map.put("email", rs.getString("email"));
+                map.put("mobile", rs.getString("mobile"));
+                map.put("role", rs.getString("role"));
+                map.put("dob", rs.getString("dob"));
+                map.put("monthly_income", rs.getDouble("monthly_income"));
+                return map;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public Map<String, Object> getCustomerByEmail(String email) {
         try (Connection con = DBConnection.getConnection()) {
             PreparedStatement ps = con.prepareStatement(
@@ -177,6 +241,9 @@ public class CustomerDAO {
                 row.put("email", rs.getString("email"));
                 row.put("mobile", rs.getString("mobile"));
                 row.put("role", rs.getString("role"));
+                row.put("bank_id", rs.getInt("bank_id"));
+                row.put("address", rs.getString("address"));
+                row.put("branch_name", rs.getString("branch_name"));
                 return row;
             }
         } catch (Exception e) {
@@ -261,6 +328,19 @@ public class CustomerDAO {
             PreparedStatement ps = con.prepareStatement("UPDATE customers SET mobile = ? WHERE id = ?");
             ps.setString(1, mobile);
             ps.setInt(2, customerId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean updatePassword(String email, String newPassword) {
+        String sql = "UPDATE customers SET password = ? WHERE email = ?";
+        try (java.sql.Connection conn = DBConnection.getConnection();
+             java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, newPassword);
+            ps.setString(2, email);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();

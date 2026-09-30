@@ -6,7 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
-@WebServlet("/google-login")
+@WebServlet("/google-auth-deprecated")
 public class GoogleAuthServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)

@@ -72,6 +72,9 @@ public class AIServlet extends HttpServlet {
                 command.add(data.get("age").toString());
                 command.add(data.get("income").toString());
                 command.add(data.get("loan_purpose").toString());
+            } else if ("chatbot".equals(type)) {
+                command.add(basePath + "ai_chatbot.py");
+                command.add(data.get("message").toString());
             } else {
                 res.setStatus(400);
                 res.getWriter().write("{\"error\":\"Unknown AI task type\"}");

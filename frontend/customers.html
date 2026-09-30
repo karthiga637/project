@@ -10,6 +10,8 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <!-- Global Styles -->
 <link rel="stylesheet" href="style.css">
+<script src="common.js"></script>
+<script>initAuthGuard(['Admin', 'BankManager']);</script>
 <style>
 *{ margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
 body{ background:#f4f7fb; }
@@ -85,11 +87,10 @@ body{ background:#f4f7fb; }
 <div class="sidebar">
 <div>
 <h3><i class="bi bi-bank2"></i> Smart Loan</h3>
-<a href="dashboard.html" class=""><i class="bi bi-speedometer2"></i> Dashboard</a>
+<a href="#" onclick="goToDashboard(); return false;" class=""><i class="bi bi-speedometer2"></i> Dashboard</a>
 <a href="customers.html" class="admin-only"><i class="bi bi-people"></i> Customers</a>
 <a href="loans.html" class=""><i class="bi bi-cash-stack"></i> <span id="sidebarLoansText">My Loans</span></a>
 <a href="emi.html" class=""><i class="bi bi-credit-card"></i> Repayments</a>
-<a href="ai-insights.html" class=""><i class="bi bi-cpu"></i> AI Insights</a>
 <a href="profile.html" class=""><i class="bi bi-person"></i> Profile</a>
 <a href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Logout</a>
 </div>

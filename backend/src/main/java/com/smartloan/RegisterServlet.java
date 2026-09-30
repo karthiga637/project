@@ -32,7 +32,15 @@ public class RegisterServlet extends HttpServlet {
             String role      = extractStr(json, "role");
             if (role == null || role.isEmpty()) role = "Customer";
 
+            
+            String otp = extractStr(json, "otp");
+            if (role.equals("Customer") && !OtpStore.verifyOtp(email, otp)) {
+                response.setStatus(401);
+                response.getWriter().write("{\"status\":\"failed\",\"message\":\"Invalid or expired OTP\"}");
+                return;
+            }
             CustomerDAO dao = new CustomerDAO();
+
             boolean ok = dao.register(firstName, lastName, email, mobile, password, role);
 
             if (ok) {

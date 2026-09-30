@@ -10,6 +10,8 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <!-- Global Styles -->
 <link rel="stylesheet" href="style.css">
+<script src="common.js"></script>
+<script>initAuthGuard(['Customer']);</script>
 <style>
 *{ margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
 body{ background:#f4f7fb; }
@@ -37,13 +39,11 @@ body{ background:#f4f7fb; }
 <div class="sidebar">
 <div>
 <h3><i class="bi bi-bank2"></i> Smart Loan</h3>
-<a href="dashboard.html" class=""><i class="bi bi-speedometer2"></i> Dashboard</a>
-<a href="customers.html" class="admin-only"><i class="bi bi-people"></i> Customers</a>
-<a href="loans.html" class=""><i class="bi bi-cash-stack"></i> <span class="sidebarLoansText">My Loans</span></a>
+<a href="customer.html" class=""><i class="bi bi-speedometer2"></i> Dashboard</a>
+<a href="loans.html" class=""><i class="bi bi-cash-stack"></i> My Loans</a>
 <a href="emi.html" class=""><i class="bi bi-credit-card"></i> Repayments</a>
-<a href="ai-insights.html" class=""><i class="bi bi-cpu"></i> AI Insights</a>
-<a href="profile.html" class=""><i class="bi bi-person"></i> Profile</a>
-<a href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Logout</a>
+<a href="profile.html" class="active"><i class="bi bi-person"></i> Profile</a>
+<a href="#" onclick="logout(); return false;"><i class="bi bi-box-arrow-right"></i> Logout</a>
 </div>
 
 <!-- AI Help Card pushed to bottom -->
@@ -70,16 +70,17 @@ body{ background:#f4f7fb; }
 
 <!-- Page Content -->
 <div class="container-fluid p-4">
-<div class="row justify-content-center">
-<div class="col-lg-8">
+<div class="row g-4 justify-content-center">
 
-<div class="card p-5">
+<!-- Left Column: Personal & Financial Profile Form -->
+<div class="col-lg-7 col-xl-7">
+<div class="card p-4 p-md-5">
 <div class="d-flex align-items-center mb-4">
-<div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-3 shadow" style="width:80px;height:80px;font-size:35px;" id="largeAvatar">C</div>
+<div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-3 shadow" style="width:75px;height:75px;font-size:32px;" id="largeAvatar">C</div>
 <div>
 <h3 class="mb-0 fw-bold" id="displayName">Customer Name</h3>
 <p class="text-muted mb-0" id="displayEmail">customer@example.com</p>
-<span class="badge bg-success mt-2">Verified Account</span>
+<span class="badge bg-success mt-2"><i class="bi bi-patch-check-fill me-1"></i>Verified Account</span>
 </div>
 </div>
 
@@ -92,19 +93,19 @@ body{ background:#f4f7fb; }
 <div class="row g-3 mb-4">
     <div class="col-md-6">
         <label class="form-label">First Name</label>
-        <input type="text" class="form-control bg-light" id="firstName" disabled>
+        <input type="text" class="form-control" id="firstName" placeholder="Enter first name" required>
     </div>
     <div class="col-md-6">
         <label class="form-label">Last Name</label>
-        <input type="text" class="form-control bg-light" id="lastName" disabled>
+        <input type="text" class="form-control" id="lastName" placeholder="Enter last name" required>
     </div>
     <div class="col-md-6">
-        <label class="form-label">Email Address (Cannot be changed)</label>
+        <label class="form-label">Email Address (Read-only)</label>
         <input type="email" class="form-control bg-light" id="email" disabled>
     </div>
     <div class="col-md-6">
         <label class="form-label">Mobile Number</label>
-        <input type="text" class="form-control" id="mobile" required>
+        <input type="text" class="form-control" id="mobile" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" required>
     </div>
     <div class="col-12">
         <label class="form-label">Residential Address</label>
@@ -112,15 +113,31 @@ body{ background:#f4f7fb; }
     </div>
 </div>
 
-<h5 class="mb-3 text-primary"><i class="bi bi-briefcase-fill me-2"></i>Financial Details</h5>
+<h5 class="mb-3 text-primary"><i class="bi bi-briefcase-fill me-2"></i>Financial & Occupation Profile</h5>
 <div class="row g-3 mb-4">
     <div class="col-md-6">
-        <label class="form-label">Occupation / Job Title</label>
-        <input type="text" class="form-control" id="occupation" required>
+        <label class="form-label">Occupation / Employment</label>
+        <select class="form-select" id="occupation" onchange="onProfileFinancialsChange()" required>
+            <option value="Salaried Professional">Salaried Professional (IT / Corporate / Govt)</option>
+            <option value="Business Owner">Business Owner / Self-Employed</option>
+            <option value="Student">Student / Academic</option>
+            <option value="Doctor/CA">Doctor / CA / Specialized Consultant</option>
+            <option value="Retired">Retired / Pensioner</option>
+        </select>
     </div>
     <div class="col-md-6">
-        <label class="form-label">Monthly Income (?)</label>
-        <input type="number" class="form-control" id="income" min="0" required>
+        <label class="form-label">Monthly Income (₹)</label>
+        <input type="number" class="form-control" id="income" min="0" placeholder="e.g. 75000" oninput="onProfileFinancialsChange()" required>
+    </div>
+    <div class="col-12">
+        <label class="form-label">Primary Financial Need / Goal</label>
+        <select class="form-select" id="financialGoal" onchange="onProfileFinancialsChange()">
+            <option value="General">General / Personal Expenses / Instant Cash</option>
+            <option value="Home">Buying a Home / Residential Property / Renovation</option>
+            <option value="Vehicle">Vehicle Purchase (Car / Two-Wheeler)</option>
+            <option value="Education">Higher Studies / University Education</option>
+            <option value="Business">Business Growth / Working Capital / Inventory</option>
+        </select>
     </div>
 </div>
 
@@ -132,14 +149,67 @@ body{ background:#f4f7fb; }
 </form>
 
 </div>
-
 </div>
+
+<!-- Right Column: AI Loan Recommendation Showcase Card -->
+<div class="col-lg-5 col-xl-5">
+<div class="card p-4 border-0 shadow-sm" style="border-top: 4px solid #0d6efd !important;">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-stars text-warning me-2"></i>AI Loan Recommendation</h5>
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1" style="font-size:0.75rem;">Recommendation Engine</span>
+    </div>
+    <p class="text-muted small mb-3">Live product suggestion generated by our AI algorithm matching your income level, career profile, and financial goal.</p>
+
+    <!-- Recommendation Result Container -->
+    <div id="recommendationContainer">
+        <!-- Top Match Card -->
+        <div class="p-3 rounded-3 mb-3" style="background: #f0f7ff; border: 1px solid #c2e0ff;">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <small class="text-muted text-uppercase fw-bold" style="font-size:0.7rem; letter-spacing: 0.5px;">Top Recommended Product</small>
+                    <h4 class="fw-bold text-primary mb-0" id="recProductTitle">Personal Loan</h4>
+                </div>
+                <span class="badge bg-success px-2 py-1 fw-bold" id="recMatchBadge"><i class="bi bi-patch-check-fill me-1"></i>98% Match</span>
+            </div>
+            
+            <div class="d-flex gap-2 mb-2 flex-wrap">
+                <span class="badge bg-white text-primary border border-primary-subtle px-2 py-1 fw-bold" id="recRateBadge"><i class="bi bi-percent me-1"></i>12.5% p.a.</span>
+                <span class="badge bg-white text-dark border px-2 py-1 fw-bold" id="recTenureBadge"><i class="bi bi-calendar3 me-1"></i>Up to 36 Months</span>
+            </div>
+
+            <div class="mb-3">
+                <small class="text-muted d-block" style="font-size:0.8rem;">Est. Maximum Eligible Loan Amount:</small>
+                <h4 class="fw-bold text-success mb-0" id="recMaxAmount">₹6,00,000</h4>
+            </div>
+
+            <div class="p-2 rounded bg-white border text-secondary small" id="recRationale" style="line-height: 1.45;">
+                Zero-collateral multipurpose financing with rapid digital verification and 24-hour fund disbursal.
+            </div>
+        </div>
+
+        <!-- Alternative Recommendation Box -->
+        <div class="p-3 rounded-3 border mb-3 bg-white">
+            <small class="text-muted fw-bold d-block mb-1" style="font-size:0.75rem;"><i class="bi bi-shuffle me-1 text-primary"></i>Alternative Recommended Product</small>
+            <span class="fw-bold text-dark" id="recAlternative">Gold Loan @ 7.5% or Car Loan @ 9.0%</span>
+        </div>
+
+        <!-- Action Button -->
+        <a href="loans.html" class="btn btn-primary w-100 fw-bold py-2 shadow-sm d-flex justify-content-center align-items-center gap-2">
+            <i class="bi bi-cash-stack"></i> Explore & View My Loans <i class="bi bi-arrow-right"></i>
+        </a>
+        <div class="text-center mt-2">
+            <small class="text-muted" style="font-size:0.75rem;"><i class="bi bi-shield-check text-success me-1"></i>Pre-qualified rates based on verified profile</small>
+        </div>
+    </div>
+</div>
+</div>
+
 </div>
 </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="profile.js?v=2"></script>
+<script src="profile.js?v=202"></script>
 </body>
 </html>
 

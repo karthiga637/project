@@ -4,129 +4,266 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bank Manager Dashboard | Smart Loan Management</title>
-<!-- Bootstrap -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<script src="common.js"></script>
 <style>
-    body { background: #f4f7fb; font-family: 'Segoe UI', sans-serif; }
-    .sidebar { position: fixed; top: 0; left: 0; width: 250px; height: 100vh; background: #0d6efd; padding-top: 20px; color: white; }
-    .sidebar h3 { text-align: center; margin-bottom: 30px; font-weight: bold; }
-    .sidebar a { display: block; padding: 15px 25px; color: white; text-decoration: none; transition: .3s; cursor: pointer; }
-    .sidebar a:hover, .sidebar a.active { background: rgba(255,255,255,.15); padding-left: 35px; }
-    .sidebar i { margin-right: 10px; }
-    .main { margin-left: 250px; }
-    .topbar { background: white; padding: 15px 30px; box-shadow: 0 3px 10px rgba(0,0,0,.08); display: flex; justify-content: space-between; align-items: center; }
-    .content { padding: 30px; }
-    .card { border: none; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,.08); }
+body { background: #f4f7fb; font-family: 'Segoe UI', sans-serif; }
+.sidebar { position: fixed; top: 0; left: 0; width: 250px; height: 100vh; background: #0d6efd; padding-top: 20px; color: white; z-index: 100; }
+.sidebar h3 { text-align: center; margin-bottom: 30px; font-weight: bold; }
+.sidebar a { display: block; padding: 15px 25px; color: white; text-decoration: none; transition: .3s; cursor: pointer; }
+.sidebar a:hover, .sidebar a.active { background: rgba(255,255,255,.15); padding-left: 35px; }
+.sidebar i { margin-right: 10px; }
+.main { margin-left: 250px; }
+.topbar { background: white; padding: 15px 30px; box-shadow: 0 3px 10px rgba(0,0,0,.08); display: flex; justify-content: space-between; align-items: center; }
+.content { padding: 30px; }
+.card { border: none; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,.08); }
+@media print {
+  .sidebar, .topbar, .no-print { display: none !important; }
+  .main { margin-left: 0; }
+  .noc-print { display: block !important; }
+}
 </style>
 </head>
 <body>
 
 <div class="sidebar">
-    <div>
-        <h3><i class="bi bi-bank2"></i> Smart Loan</h3>
-        <a href="#" class="active" onclick="showTab('analytics')"><i class="bi bi-speedometer2"></i> Analytics</a>
-        <a href="#" onclick="showTab('products')"><i class="bi bi-tags"></i> Loan Products</a>
-        <a href="#" onclick="showTab('leads')"><i class="bi bi-person-lines-fill"></i> Customer Leads</a>
-        <a href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Logout</a>
-    </div>
+  <div>
+    <h3><i class="bi bi-bank2"></i> Smart Loan</h3>
+    <a href="#" class="active" onclick="return false;"><i class="bi bi-speedometer2"></i> Analytics</a>
+    <a href="#" data-bs-toggle="modal" data-bs-target="#newCustomerModal"><i class="bi bi-person-plus-fill"></i> New Customer</a>
+    <a href="#" onclick="doLogout()"><i class="bi bi-box-arrow-right"></i> Logout</a>
+  </div>
 </div>
 
 <div class="main">
-    <div class="topbar">
-        <h4 id="pageTitle">Bank Manager Dashboard</h4>
-        <div class="profile">
-            <span id="userName" class="fw-bold"></span>
-            <span class="badge bg-primary">Bank Manager</span>
-        </div>
+  <div class="topbar">
+    <h4>Bank Manager Dashboard</h4>
+    <div class="d-flex align-items-center">
+      <span id="userName" class="fw-bold me-2"></span>
+      <span class="badge bg-primary">Bank Manager</span>
     </div>
-    
-    <div class="content">
-        <!-- Analytics Tab -->
-        <div id="analyticsTab" class="tab-pane">
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <div class="card p-4">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="text-muted">Total Loans</h6>
-                                <h3 id="statTotalLoans">0</h3>
-                            </div>
-                            <i class="bi bi-file-earmark-text text-primary" style="font-size: 40px;"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 mb-4">
-                    <div class="card p-4">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="text-muted">Total Outstanding (,)</h6>
-                                <h3 id="statTotalOutstanding">0.00</h3>
-                            </div>
-                            <i class="bi bi-cash-stack text-warning" style="font-size: 40px;"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+  </div>
 
-        <!-- Products Tab -->
-        <div id="productsTab" class="tab-pane" style="display: none;">
-            <div class="card p-4">
-                <h5>Manage Loan Products & Interest Rates</h5>
-                <table class="table mt-3">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Loan Type</th>
-                            <th>Current Interest Rate (%)</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="productsTableBody">
-                    </tbody>
-                </table>
+  <div class="content">
+    <!-- Stat Cards -->
+    <div class="row mb-4">
+      <div class="col-md-4 mb-3">
+        <div class="card p-4 h-100 border-0 shadow-sm" style="border-left:5px solid #0d6efd !important;">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <small class="text-muted fw-bold text-uppercase" id="statLoansTitle">MY ACTIVE LOANS</small>
+              <h3 class="fw-bold m-0 mt-1" id="statLoansCount">0</h3>
+              <small class="text-muted" id="statLoansSub">Assigned to My Customers</small>
             </div>
+            <i class="bi bi-file-earmark-text text-primary" style="font-size:38px;"></i>
+          </div>
         </div>
-
-        <!-- Leads Tab -->
-        <div id="leadsTab" class="tab-pane" style="display: none;">
-            <div class="card p-4">
-                <h5>Customer Leads</h5>
-                <table class="table mt-3">
-                    <thead>
-                        <tr>
-                            <th>Customer Name</th>
-                            <th>Email</th>
-                            <th>Mobile</th>
-                            <th>Loan Type</th>
-                            <th>Status</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody id="leadsTableBody">
-                    </tbody>
-                </table>
+      </div>
+      <div class="col-md-4 mb-3">
+        <div class="card p-4 h-100 border-0 shadow-sm" style="border-left:5px solid #198754 !important;">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <small class="text-muted fw-bold text-uppercase">MY ADDED CUSTOMERS</small>
+              <h3 class="fw-bold m-0 mt-1" id="statMyCustomers">0</h3>
+              <small class="text-muted">Created by me</small>
             </div>
+            <i class="bi bi-person-badge text-success" style="font-size:38px;"></i>
+          </div>
         </div>
+      </div>
+      <div class="col-md-4 mb-3">
+        <div class="card p-4 h-100 border-0 shadow-sm" style="border-left:5px solid #6c757d !important;">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <small class="text-muted fw-bold text-uppercase">ALL BANK CUSTOMERS</small>
+              <h3 class="fw-bold m-0 mt-1" id="statAllCustomers">0</h3>
+              <small class="text-muted">Total Bank Database</small>
+            </div>
+            <i class="bi bi-people text-secondary" style="font-size:38px;"></i>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- Customer Cards Section -->
+    <div class="card p-4 border-0 shadow-sm">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div>
+          <h5 class="fw-bold mb-0"><i class="bi bi-people-fill me-2 text-primary"></i>Managed Customer Accounts &amp; Loans</h5>
+          <small class="text-muted">View, manage, edit, and assign multiple loans for each customer</small>
+        </div>
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+          <button class="btn btn-primary fw-bold" id="btnAll" onclick="setFilter('all')">
+            <i class="bi bi-people-fill me-1"></i> All Bank Customers (<span id="countAll">0</span>)
+          </button>
+          <button class="btn btn-outline-primary fw-bold" id="btnMy" onclick="setFilter('my')">
+            <i class="bi bi-person-check-fill me-1"></i> My Added Customers (<span id="countMy">0</span>)
+          </button>
+          <button class="btn btn-outline-secondary btn-sm" onclick="renderDashboard()">
+            <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+          </button>
+        </div>
+      </div>
+      <div id="customerContainer">
+        <div class="text-center py-4 text-muted">
+          <div class="spinner-border text-primary mb-2" role="status"></div>
+          <p>Loading customers...</p>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- Update Rate Modal -->
-<div class="modal fade" id="updateRateModal" tabindex="-1">
+<!-- ══════════════════════════════════════════════════════════
+     NEW CUSTOMER MODAL
+══════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="newCustomerModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Update Interest Rate</h5>
+        <h5 class="modal-title"><i class="bi bi-person-plus-fill me-2"></i>Quick Add Customer</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <input type="hidden" id="editProductId">
-        <div class="mb-3">
-            <label>New Interest Rate (%)</label>
-            <input type="number" id="editInterestRate" class="form-control" step="0.01" required>
+        <form id="newCustForm">
+          <div class="row">
+            <div class="col-6 mb-3"><label class="form-label fw-bold small">First Name</label><input type="text" id="ncFirst" class="form-control" required></div>
+            <div class="col-6 mb-3"><label class="form-label fw-bold small">Last Name</label><input type="text" id="ncLast" class="form-control" required></div>
+          </div>
+          <div class="mb-3"><label class="form-label fw-bold small">Email</label><input type="email" id="ncEmail" class="form-control" required></div>
+          <div class="mb-3"><label class="form-label fw-bold small">Mobile</label><input type="text" id="ncMobile" class="form-control" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" required></div>
+          <div class="row">
+            <div class="col-6 mb-3">
+              <label class="form-label fw-bold small">Loan Type</label>
+              <select id="ncLoanType" class="form-select" required>
+                <option value="">Select...</option>
+                <option>Home Loan</option>
+                <option>Personal Loan</option>
+                <option>Education Loan</option>
+                <option>Car Loan</option>
+                <option>Business Loan</option>
+                <option>Two-Wheeler Loan</option>
+              </select>
+            </div>
+            <div class="col-6 mb-3"><label class="form-label fw-bold small">Loan ID</label><input type="text" id="ncLoanId" class="form-control" placeholder="e.g. HDFC-2026-31" required></div>
+          </div>
+          <div class="row">
+            <div class="col-6 mb-3"><label class="form-label fw-bold small">Loan Amount (₹)</label><input type="number" id="ncAmount" class="form-control" min="1000" required></div>
+            <div class="col-6 mb-3"><label class="form-label fw-bold small">Tenure (Months)</label><input type="number" id="ncTenure" class="form-control" min="1" max="360" required></div>
+          </div>
+          <div class="mb-3"><label class="form-label fw-bold small">Home Address</label><textarea id="ncAddress" class="form-control" rows="2" required></textarea></div>
+          <button type="submit" class="btn btn-primary w-100 fw-bold py-2"><i class="bi bi-check-circle me-1"></i>Create Customer Account</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     EDIT CUSTOMER MODAL
+══════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="editCustModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Edit Customer &amp; Loan Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editCustForm">
+          <input type="hidden" id="ecEmail">
+          <div class="row">
+            <div class="col-6 mb-3"><label class="form-label fw-bold small">First Name</label><input type="text" id="ecFirst" class="form-control" required></div>
+            <div class="col-6 mb-3"><label class="form-label fw-bold small">Last Name</label><input type="text" id="ecLast" class="form-control" required></div>
+          </div>
+          <div class="mb-3"><label class="form-label fw-bold small">Mobile</label><input type="text" id="ecMobile" class="form-control" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" required></div>
+          <div class="row">
+            <div class="col-6 mb-3">
+              <label class="form-label fw-bold small">Loan Type</label>
+              <select id="ecLoanType" class="form-select" required>
+                <option>Home Loan</option>
+                <option>Personal Loan</option>
+                <option>Education Loan</option>
+                <option>Car Loan</option>
+                <option>Business Loan</option>
+                <option>Two-Wheeler Loan</option>
+              </select>
+            </div>
+            <div class="col-6 mb-3"><label class="form-label fw-bold small">Loan ID</label><input type="text" id="ecLoanId" class="form-control" required></div>
+          </div>
+          <div class="row">
+            <div class="col-6 mb-3"><label class="form-label fw-bold small">Loan Amount (₹)</label><input type="number" id="ecAmount" class="form-control" min="1000" required></div>
+            <div class="col-6 mb-3"><label class="form-label fw-bold small">Tenure (Months)</label><input type="number" id="ecTenure" class="form-control" min="1" max="360" required></div>
+          </div>
+          <div class="mb-3"><label class="form-label fw-bold small">Address</label><textarea id="ecAddress" class="form-control" rows="2"></textarea></div>
+          <button type="submit" class="btn btn-primary w-100 fw-bold py-2"><i class="bi bi-save me-1"></i>Save Changes</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     ADD LOAN MODAL
+══════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="addLoanModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i>Add New Loan to Customer</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="alert alert-light border mb-3">
+          <div class="fw-bold" id="alCustName">Customer Name</div>
+          <div class="small text-muted" id="alCustEmail">email@domain.com</div>
         </div>
-        <button class="btn btn-primary w-100" onclick="saveInterestRate()">Save Changes</button>
+        <input type="hidden" id="alEmail">
+        <input type="hidden" id="alMobile">
+        <form id="addLoanForm">
+          <div class="row">
+            <div class="col-6 mb-3">
+              <label class="form-label fw-bold small">Loan Type</label>
+              <select id="alLoanType" class="form-select" required>
+                <option value="">Select...</option>
+                <option>Home Loan</option>
+                <option>Personal Loan</option>
+                <option>Education Loan</option>
+                <option>Car Loan</option>
+                <option>Business Loan</option>
+                <option>Two-Wheeler Loan</option>
+              </select>
+            </div>
+            <div class="col-6 mb-3"><label class="form-label fw-bold small">Loan ID</label><input type="text" id="alLoanId" class="form-control" required></div>
+          </div>
+          <div class="row">
+            <div class="col-6 mb-3"><label class="form-label fw-bold small">Loan Amount (₹)</label><input type="number" id="alAmount" class="form-control" min="1000" required></div>
+            <div class="col-6 mb-3"><label class="form-label fw-bold small">Tenure (Months)</label><input type="number" id="alTenure" class="form-control" min="1" max="360" required></div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 fw-bold py-2"><i class="bi bi-plus-circle me-1"></i>Add Loan</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     NOC CERTIFICATE MODAL
+══════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="nocModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content border-0">
+      <div class="modal-header bg-primary text-white no-print">
+        <h5 class="modal-title fw-bold"><i class="bi bi-patch-check-fill me-2"></i>Loan Closure Certificate / NOC</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4" id="nocContent">
+        <!-- filled by JS -->
+      </div>
+      <div class="modal-footer no-print">
+        <button class="btn btn-primary fw-bold px-4" onclick="window.print()"><i class="bi bi-printer-fill me-1"></i>Print / Save PDF</button>
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
@@ -134,112 +271,541 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        let user = JSON.parse(localStorage.getItem('slm_session'));
-        if (!user || user.role !== 'BankManager') {
-            window.location.href = 'login.html';
-            return;
+// ════════════════════════════════════════════════════════════════
+//  SMART LOAN — BANK MANAGER DASHBOARD
+//  Clean rewrite — all logic inside DOMContentLoaded
+// ════════════════════════════════════════════════════════════════
+
+var CURRENT_FILTER = 'all';
+
+// ── Helpers ──────────────────────────────────────────────────
+function getSession() {
+    try { return JSON.parse(localStorage.getItem('slm_session') || '{}'); } catch(e) { return {}; }
+}
+function getLoans() {
+    try { return JSON.parse(localStorage.getItem('slm_customer_loans') || '[]'); } catch(e) { return []; }
+}
+function saveLoans(arr) {
+    localStorage.setItem('slm_customer_loans', JSON.stringify(arr));
+}
+function fmtName(str) {
+    if (!str) return '';
+    return str.split(' ').filter(function(w){ return w.length > 0; }).map(function(w){ return w[0].toUpperCase() + w.slice(1).toLowerCase(); }).join(' ');
+}
+function getManagerName(user) {
+    if (!user) return 'Bank Manager';
+    if (user.name && user.name.trim()) return fmtName(user.name.trim());
+    if (user.email) return fmtName(user.email.split('@')[0].replace(/[._-]/g,' '));
+    return 'Bank Manager';
+}
+function getNextLoanId() {
+    var loans = getLoans();
+    var max = 96;
+    loans.forEach(function(l) {
+        var m = String(l.loanId||'').match(/(\d+)$/);
+        if (m) { var n = parseInt(m[1]); if (n > max) max = n; }
+    });
+    var next = max + 1;
+    return 'HDFC-2026-' + (next < 10 ? '0'+next : next);
+}
+function calcEMI(amount, ratePerYear, months) {
+    if (!amount || !months) return 0;
+    if (!ratePerYear) return Math.round(amount / months);
+    var r = (ratePerYear / 100) / 12;
+    return Math.round(amount * r * Math.pow(1+r,months) / (Math.pow(1+r,months) - 1));
+}
+function calcBalance(loan) {
+    var amount = parseFloat(loan.loanAmount) || 0;
+    var tenure = parseInt(loan.tenure) || 0;
+    var rate = parseFloat(loan.interestRate) || (loan.loanType === 'Home Loan' ? 8.5 : 10.5);
+    if (!amount || !tenure) return amount;
+    var r = (rate/100)/12;
+    var emi = calcEMI(amount, rate, tenure);
+    var paidEmis = [];
+    try { paidEmis = JSON.parse(localStorage.getItem('slm_paid_emis') || '[]'); } catch(e) {}
+    var extraPayments = {};
+    try { extraPayments = JSON.parse(localStorage.getItem('slm_extra_payments') || '{}'); } catch(e) {}
+    var lid = String(loan.loanId||'').replace(/^#/,'').trim();
+    var extraPaid = parseFloat(extraPayments[lid] || extraPayments['#'+lid] || 0);
+    var balance = Math.max(0, amount - extraPaid);
+
+    var paidCount = 0;
+    for (var i = 1; i <= tenure; i++) {
+        var instId = 'EMI-' + lid + '-' + i;
+        var altId  = 'EMI-' + (loan.loanId||'') + '-' + i;
+        if (paidEmis.indexOf(instId) >= 0 || paidEmis.indexOf(altId) >= 0) {
+            paidCount++;
+            var interest  = balance > 0 ? Math.round(balance * r) : 0;
+            var principal = balance > 0 ? Math.min(balance, emi - interest) : 0;
+            balance = Math.max(0, balance - principal);
         }
-        document.getElementById('userName').textContent = user.name;
-        loadAnalytics();
+    }
+
+    // All EMIs paid → mark complete (same logic as customer dashboard)
+    if (paidCount >= tenure) return 0;
+    // Rounding artifact (₹1–₹9 left due to integer rounding) → treat as zero
+    if (balance < 10) return 0;
+    return Math.round(balance);
+}
+function doLogout() {
+    localStorage.removeItem('slm_session');
+    window.location.href = 'login.html';
+}
+function setFilter(f) {
+    CURRENT_FILTER = f;
+    document.getElementById('btnAll').className = f === 'all' ? 'btn btn-primary fw-bold' : 'btn btn-outline-primary fw-bold';
+    document.getElementById('btnMy').className = f === 'my' ? 'btn btn-primary fw-bold' : 'btn btn-outline-primary fw-bold';
+    renderCards();
+}
+
+// ── Seed default loan records ─────────────────────────────────
+function seedLoans() {
+    var defaults = [
+        { email:'24ucs24@tcarts.in', loanId:'HDFC-2026-9', loanType:'Personal Loan', loanAmount:30000, tenure:12, interestRate:10.5, name:'karthiga maharajan', mobile:'9361717692', manager_email:'priya@hdfcbank.com', manager_name:'Priya S', branch_name:'Coimbatore - veerakeralam' },
+        { email:'karthigamaharajan@gmail.com', loanId:'HDFC-2026-18', loanType:'Home Loan', loanAmount:200000, tenure:12, interestRate:8.5, name:'karthiga Maharajan', mobile:'9361717692', manager_email:'hari@hdfcbank.com', manager_name:'Hari K', branch_name:'Madurai - jaihindpuram' },
+        { email:'gopimaharajan637@gmail.com', loanId:'HDFC-2026-94', loanType:'Personal Loan', loanAmount:100000, tenure:24, interestRate:10.5, name:'gopi maharajan', mobile:'8878672347', manager_email:'priya@hdfcbank.com', manager_name:'Priya S', branch_name:'Coimbatore - veerakeralam' },
+        { email:'rajanmaha492@gmail.com', loanId:'HDFC-2026-95', loanType:'Home Loan', loanAmount:50000, tenure:12, interestRate:8.5, name:'Raja s', mobile:'9412345678', manager_email:'ram@hdfcbank.com', manager_name:'Ram M', branch_name:'Madurai - anna nagar' },
+        { email:'24ucs43@tcarts.in', loanId:'HDFC-2026-96', loanType:'Personal Loan', loanAmount:500000, tenure:36, interestRate:10.5, name:'siva s', mobile:'6380085134', manager_email:'suresh@hdfcbank.com', manager_name:'Suresh B', branch_name:'Erode - Perundurai' }
+    ];
+    var existing = getLoans();
+    var existingIds = {};
+    existing.forEach(function(l){ if(l.loanId) existingIds[String(l.loanId).toLowerCase()] = true; });
+    var changed = false;
+    defaults.forEach(function(d) {
+        if (!existingIds[String(d.loanId).toLowerCase()]) {
+            existing.push(d);
+            changed = true;
+        }
+    });
+    if (changed || existing.length === 0) saveLoans(existing);
+}
+
+// ── Build unique customers from loan records ──────────────────
+function buildCustomers() {
+    var loans = getLoans();
+    var byEmail = {};
+    loans.forEach(function(l) {
+        var em = String(l.email||'').trim().toLowerCase();
+        if (!em) return;
+        if (!byEmail[em]) {
+            var parts = (l.name||'Customer').split(' ');
+            byEmail[em] = {
+                email: l.email,
+                firstName: fmtName(parts[0]||'Customer'),
+                lastName: fmtName(parts.slice(1).join(' ')||''),
+                mobile: l.mobile||'',
+                branch_name: l.branch_name||'Main Branch',
+                manager_email: l.manager_email||'',
+                manager_name: l.manager_name||'Bank Manager',
+                loans: []
+            };
+        }
+        byEmail[em].loans.push(l);
+    });
+    var result = [];
+    for (var em in byEmail) result.push(byEmail[em]);
+    return result;
+}
+
+// ── Render stat cards ─────────────────────────────────────────
+function renderStats(customers, session) {
+    var myEmail = (session.email||'').toLowerCase();
+    var myLoans = 0;
+    var myCusts = 0;
+    customers.forEach(function(c) {
+        if ((c.manager_email||'').toLowerCase() === myEmail) {
+            myCusts++;
+            myLoans += c.loans.length;
+        }
+    });
+    // Stat card 1 depends on filter
+    if (CURRENT_FILTER === 'my') {
+        document.getElementById('statLoansTitle').textContent = 'MY ACTIVE LOANS';
+        document.getElementById('statLoansCount').textContent = myLoans;
+        document.getElementById('statLoansSub').textContent = 'Assigned to My Customers';
+    } else {
+        var totalLoans = 0;
+        customers.forEach(function(c){ totalLoans += c.loans.length; });
+        document.getElementById('statLoansTitle').textContent = 'TOTAL BANK LOANS';
+        document.getElementById('statLoansCount').textContent = totalLoans;
+        document.getElementById('statLoansSub').textContent = 'Total Bank Active Loans';
+    }
+    document.getElementById('statMyCustomers').textContent = myCusts;
+    document.getElementById('statAllCustomers').textContent = customers.length;
+    document.getElementById('countAll').textContent = customers.length;
+    document.getElementById('countMy').textContent = myCusts;
+}
+
+// ── Render customer cards ────────────────────────────────────
+function renderCards() {
+    var session = getSession();
+    var myEmail = (session.email||'').toLowerCase();
+    var customers = buildCustomers();
+
+    renderStats(customers, session);
+
+    var list = CURRENT_FILTER === 'my'
+        ? customers.filter(function(c){ return (c.manager_email||'').toLowerCase() === myEmail; })
+        : customers;
+
+    var container = document.getElementById('customerContainer');
+    if (!container) return;
+
+    if (list.length === 0) {
+        container.innerHTML = '<div class="card p-5 text-center border-0"><i class="bi bi-person-x fs-1 text-secondary mb-2"></i><h5 class="fw-bold">No Customers Found</h5><p class="text-muted mb-0">Click <strong>"New Customer"</strong> in the sidebar to add customers.</p></div>';
+        return;
+    }
+
+    var html = '';
+    list.forEach(function(c) {
+        var isMine = (c.manager_email||'').toLowerCase() === myEmail;
+        var addedBy = isMine ? ('Added by: ' + getManagerName(session) + ' (You)') : ('Added by: ' + fmtName(c.manager_name||c.manager_email.split('@')[0]));
+        var badgeClass = isMine ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-secondary-subtle text-dark border';
+        var initials = ((c.firstName[0]||'') + (c.lastName[0]||'')).toUpperCase() || 'C';
+
+        var rows = '';
+        if (c.loans.length === 0) {
+            rows = '<tr><td colspan="8" class="text-center text-muted py-3 small">No loans assigned. Click "+ Add Loan" to add a loan.</td></tr>';
+        } else {
+            c.loans.forEach(function(l) {
+                var amount = parseFloat(l.loanAmount)||0;
+                var tenure = parseInt(l.tenure)||0;
+                var rate = parseFloat(l.interestRate)||(l.loanType==='Home Loan'?8.5:10.5);
+                var emi = calcEMI(amount, rate, tenure);
+                var balance = calcBalance(l);
+                var isCompleted = (balance <= 0);
+                var lid = String(l.loanId||'').trim();
+                var amtFmt = Number(amount).toLocaleString('en-IN');
+                var emiFmt = Number(emi).toLocaleString('en-IN');
+                var statusHtml = isCompleted
+                    ? '<span class="badge bg-primary px-3 py-2"><i class="bi bi-check2-all me-1"></i>Completed</span>'
+                    : '<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1"><i class="bi bi-play-circle me-1"></i>Active</span>';
+                var balHtml = isCompleted
+                    ? '<span class="badge bg-light text-success border border-success fw-bold px-2 py-1">₹0 (Paid Off)</span>'
+                    : '<span class="text-danger fw-bold">₹' + Number(balance).toLocaleString('en-IN') + '</span>';
+                var safeFirst = (c.firstName||'').replace(/'/g,"\\'");
+                var safeLast = (c.lastName||'').replace(/'/g,"\\'");
+                var safeEmail = (c.email||'').replace(/'/g,"\\'");
+                var safeMobile = (c.mobile||'').replace(/'/g,"\\'");
+                var safeLoanType = (l.loanType||'').replace(/'/g,"\\'");
+                var safeBranch = (c.branch_name||'').replace(/'/g,"\\'");
+                var safeLid = lid.replace(/'/g,"\\'");
+                var actionHtml = isCompleted
+                    ? '<button class="btn btn-sm btn-primary fw-bold py-1 px-2 me-1" onclick="openNOC(\'' + safeLid + '\',\'' + safeFirst + ' ' + safeLast + '\',\'' + safeEmail + '\',\'' + safeMobile + '\',\'' + safeLoanType + '\',' + amount + ',\'' + safeBranch + '\')"><i class="bi bi-patch-check-fill me-1"></i>Issue NOC</button>'
+                      + '<button class="btn btn-sm btn-outline-danger py-1 px-2" onclick="deleteLoan(\'' + safeLid + '\',\'' + safeEmail + '\')"><i class="bi bi-trash"></i></button>'
+                    : '<button class="btn btn-sm btn-outline-danger py-1 px-2" onclick="deleteLoan(\'' + safeLid + '\',\'' + safeEmail + '\')"><i class="bi bi-trash me-1"></i>Delete Loan</button>';
+
+                rows += '<tr>'
+                    + '<td class="ps-4 fw-bold text-primary"><span class="badge bg-primary px-3 py-2">' + lid + '</span></td>'
+                    + '<td class="fw-semibold">' + (l.loanType||'') + '</td>'
+                    + '<td class="fw-bold text-success">₹' + amtFmt + '</td>'
+                    + '<td><span class="badge bg-warning-subtle text-dark border px-2 py-1">' + tenure + ' Months</span></td>'
+                    + '<td class="fw-semibold">₹' + emiFmt + ' / mo</td>'
+                    + '<td>' + balHtml + '</td>'
+                    + '<td>' + statusHtml + '</td>'
+                    + '<td class="text-end pe-4">' + actionHtml + '</td>'
+                    + '</tr>';
+            });
+        }
+
+        var safeFirst2 = (c.firstName||'').replace(/'/g,"\\'");
+        var safeLast2 = (c.lastName||'').replace(/'/g,"\\'");
+        var safeEmail2 = (c.email||'').replace(/'/g,"\\'");
+        var safeMobile2 = (c.mobile||'').replace(/'/g,"\\'");
+
+        html += '<div class="card border-0 shadow-sm mb-4">'
+            + '<div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2 border-bottom">'
+            + '<div class="d-flex align-items-center">'
+            + '<div class="me-3 bg-primary bg-opacity-10 text-primary fw-bold fs-5 d-flex align-items-center justify-content-center rounded-circle" style="width:48px;height:48px;">' + initials + '</div>'
+            + '<div>'
+            + '<h6 class="fw-bold m-0 fs-5">' + c.firstName + ' ' + c.lastName + '</h6>'
+            + '<div class="text-muted small mt-1"><i class="bi bi-envelope me-1"></i>' + c.email + ' &bull; <i class="bi bi-telephone me-1"></i>' + c.mobile + ' &bull; <i class="bi bi-geo-alt me-1 text-primary"></i><span class="fw-semibold text-dark">' + c.branch_name + '</span></div>'
+            + '</div>'
+            + '</div>'
+            + '<div class="d-flex align-items-center gap-2 flex-wrap">'
+            + '<span class="badge ' + badgeClass + ' px-3 py-2"><i class="bi bi-person-badge me-1"></i>' + addedBy + '</span>'
+            + '<span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2"><i class="bi bi-journal-text me-1"></i>' + c.loans.length + ' Loan(s)</span>'
+            + '<button class="btn btn-sm btn-success fw-bold px-3 py-1" onclick="openAddLoan(\'' + safeEmail2 + '\',\'' + safeFirst2 + ' ' + safeLast2 + '\',\'' + safeMobile2 + '\')"><i class="bi bi-plus-circle me-1"></i>Add Loan</button>'
+            + '<button class="btn btn-sm btn-outline-primary fw-bold px-3 py-1" onclick="openEditCust(\'' + safeEmail2 + '\')"><i class="bi bi-pencil me-1"></i>Edit Customer</button>'
+            + '<button class="btn btn-sm btn-outline-danger fw-bold px-3 py-1" onclick="deleteCust(\'' + safeEmail2 + '\',\'' + safeFirst2 + ' ' + safeLast2 + '\')"><i class="bi bi-trash me-1"></i>Delete</button>'
+            + '</div>'
+            + '</div>'
+            + '<div class="card-body p-0"><div class="table-responsive">'
+            + '<table class="table table-hover align-middle m-0">'
+            + '<thead class="table-light small text-uppercase text-muted"><tr>'
+            + '<th class="ps-4 py-2">LOAN ID</th><th class="py-2">LOAN TYPE</th><th class="py-2">LOAN AMOUNT</th>'
+            + '<th class="py-2">TENURE</th><th class="py-2">ESTIMATED EMI</th><th class="py-2">OUTSTANDING</th>'
+            + '<th class="py-2">STATUS</th><th class="text-end pe-4 py-2">ACTION</th>'
+            + '</tr></thead>'
+            + '<tbody>' + rows + '</tbody>'
+            + '</table></div></div>'
+            + '</div>';
     });
 
-    function logout() {
-        localStorage.removeItem('slm_session');
+    container.innerHTML = html;
+}
+
+// ── Main render entry point ───────────────────────────────────
+function renderDashboard() {
+    renderCards();
+}
+
+// ── Delete loan ───────────────────────────────────────────────
+function deleteLoan(loanId, email) {
+    if (!confirm('Delete loan ' + loanId + ' for ' + email + '?')) return;
+    var loans = getLoans();
+    loans = loans.filter(function(l){ return !(String(l.loanId||'').trim() === loanId && (l.email||'').toLowerCase() === email.toLowerCase()); });
+    saveLoans(loans);
+    renderDashboard();
+}
+
+// ── Delete customer ───────────────────────────────────────────
+function deleteCust(email, name) {
+    if (!confirm('Delete customer ' + name + ' and ALL their loans? This cannot be undone.')) return;
+    var loans = getLoans();
+    loans = loans.filter(function(l){ return (l.email||'').toLowerCase() !== email.toLowerCase(); });
+    saveLoans(loans);
+    renderDashboard();
+}
+
+// ── Open Edit Customer ────────────────────────────────────────
+function openEditCust(email) {
+    var loans = getLoans();
+    var cLoan = loans.find(function(l){ return (l.email||'').toLowerCase() === email.toLowerCase(); });
+    if (!cLoan) return;
+    var parts = (cLoan.name||'Customer').split(' ');
+    document.getElementById('ecEmail').value = email;
+    document.getElementById('ecFirst').value = fmtName(parts[0]||'');
+    document.getElementById('ecLast').value = fmtName(parts.slice(1).join(' ')||'');
+    document.getElementById('ecMobile').value = cLoan.mobile||'';
+    document.getElementById('ecLoanType').value = cLoan.loanType||'Personal Loan';
+    document.getElementById('ecLoanId').value = cLoan.loanId||'';
+    document.getElementById('ecAmount').value = cLoan.loanAmount||'';
+    document.getElementById('ecTenure').value = cLoan.tenure||'';
+    document.getElementById('ecAddress').value = cLoan.address||'';
+    new bootstrap.Modal(document.getElementById('editCustModal')).show();
+}
+
+// ── Open Add Loan ─────────────────────────────────────────────
+function openAddLoan(email, name, mobile) {
+    document.getElementById('alEmail').value = email;
+    document.getElementById('alMobile').value = mobile;
+    document.getElementById('alCustName').textContent = name;
+    document.getElementById('alCustEmail').textContent = email;
+    document.getElementById('alLoanId').value = getNextLoanId();
+    document.getElementById('addLoanForm').reset();
+    document.getElementById('alLoanId').value = getNextLoanId();
+    document.getElementById('alEmail').value = email;
+    new bootstrap.Modal(document.getElementById('addLoanModal')).show();
+}
+
+// ── Open NOC ─────────────────────────────────────────────────
+function openNOC(loanId, custName, email, mobile, loanType, amount, branch) {
+    var session = getSession();
+    var today = new Date();
+    var dateStr = today.toLocaleDateString('en-IN', {day:'2-digit', month:'long', year:'numeric'});
+    var refNo = 'NOC/2026/' + loanId;
+    var mgrName = getManagerName(session);
+    var content = '<div style="border:2px solid #0d6efd;border-radius:12px;padding:32px;font-family:serif;">'
+        + '<div style="text-align:center;border-bottom:2px solid #0d6efd;padding-bottom:16px;margin-bottom:24px;">'
+        + '<h2 style="color:#0d6efd;font-weight:bold;margin:0;">HDFC Smart Loan Bank</h2>'
+        + '<p style="color:#555;margin:4px 0;">Loan Management Division &bull; ISO 9001:2015 Certified</p>'
+        + '<h3 style="margin:12px 0 0;font-weight:bold;text-transform:uppercase;letter-spacing:2px;">No Objection Certificate</h3>'
+        + '<p style="margin:4px 0;color:#555;">Loan Closure Certificate</p>'
+        + '</div>'
+        + '<div style="display:flex;justify-content:space-between;margin-bottom:20px;">'
+        + '<div><strong>Certificate Ref:</strong> ' + refNo + '</div>'
+        + '<div><strong>Date:</strong> ' + dateStr + '</div>'
+        + '</div>'
+        + '<p>This is to certify that the following borrower has fully repaid the loan mentioned below and has no outstanding dues with our institution:</p>'
+        + '<table style="width:100%;border-collapse:collapse;margin:20px 0;">'
+        + '<tr style="background:#f0f7ff;"><td style="padding:10px 14px;border:1px solid #cde;font-weight:bold;width:40%;">Customer Name</td><td style="padding:10px 14px;border:1px solid #cde;">' + custName + '</td></tr>'
+        + '<tr><td style="padding:10px 14px;border:1px solid #cde;font-weight:bold;">Registered Email</td><td style="padding:10px 14px;border:1px solid #cde;">' + email + '</td></tr>'
+        + '<tr style="background:#f0f7ff;"><td style="padding:10px 14px;border:1px solid #cde;font-weight:bold;">Mobile Number</td><td style="padding:10px 14px;border:1px solid #cde;">' + mobile + '</td></tr>'
+        + '<tr><td style="padding:10px 14px;border:1px solid #cde;font-weight:bold;">Loan ID</td><td style="padding:10px 14px;border:1px solid #cde;">' + loanId + '</td></tr>'
+        + '<tr style="background:#f0f7ff;"><td style="padding:10px 14px;border:1px solid #cde;font-weight:bold;">Loan Type</td><td style="padding:10px 14px;border:1px solid #cde;">' + loanType + '</td></tr>'
+        + '<tr><td style="padding:10px 14px;border:1px solid #cde;font-weight:bold;">Total Sanctioned Amount</td><td style="padding:10px 14px;border:1px solid #cde;">₹' + Number(amount).toLocaleString('en-IN') + '</td></tr>'
+        + '<tr style="background:#f0f7ff;"><td style="padding:10px 14px;border:1px solid #cde;font-weight:bold;">Outstanding Balance</td><td style="padding:10px 14px;border:1px solid #cde;color:green;font-weight:bold;">₹0 (Nil)</td></tr>'
+        + '<tr><td style="padding:10px 14px;border:1px solid #cde;font-weight:bold;">Branch</td><td style="padding:10px 14px;border:1px solid #cde;">' + branch + '</td></tr>'
+        + '</table>'
+        + '<p style="margin:20px 0;">We confirm that <strong>' + custName + '</strong> has repaid all dues including principal, interest, and applicable charges. This NOC certifies that the bank has <strong>no objection</strong> to the closure of this loan account. All encumbrances, liens, and hypothecation charges related to this loan are hereby <strong>released</strong>.</p>'
+        + '<div style="display:flex;justify-content:space-between;margin-top:40px;align-items:flex-end;">'
+        + '<div style="text-align:center;">'
+        + '<div style="border-top:1px solid #333;padding-top:8px;width:200px;">Authorized Signatory</div>'
+        + '<div style="font-weight:bold;">' + mgrName + '</div>'
+        + '<div style="color:#555;font-size:14px;">Bank Manager, HDFC Smart Loan</div>'
+        + '</div>'
+        + '<div style="text-align:center;">'
+        + '<div style="border:2px solid #0d6efd;border-radius:50%;width:90px;height:90px;display:flex;align-items:center;justify-content:center;color:#0d6efd;font-weight:bold;font-size:11px;text-align:center;padding:4px;">OFFICIAL<br>BANK<br>SEAL</div>'
+        + '</div>'
+        + '</div>'
+        + '<p style="text-align:center;color:#888;font-size:13px;margin-top:24px;border-top:1px solid #ddd;padding-top:12px;">This is a computer-generated certificate. Ref: ' + refNo + ' | HDFC Smart Loan Bank &bull; smart-loan-management.in</p>'
+        + '</div>';
+    document.getElementById('nocContent').innerHTML = content;
+    new bootstrap.Modal(document.getElementById('nocModal')).show();
+}
+
+// ════════════════════════════════════════════════════════════════
+//  INITIALISE ON DOM READY
+// ════════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', function() {
+    // Auth check
+    var session = getSession();
+    if (!session || !session.role || (session.role !== 'BankManager' && session.role !== 'Admin')) {
         window.location.href = 'login.html';
+        return;
     }
 
-    function showTab(tabName) {
-        document.querySelectorAll('.tab-pane').forEach(el => el.style.display = 'none');
-        document.querySelectorAll('.sidebar a').forEach(el => el.classList.remove('active'));
-        
-        document.getElementById(tabName + 'Tab').style.display = 'block';
-        event.currentTarget.classList.add('active');
-        
-        if (tabName === 'analytics') loadAnalytics();
-        else if (tabName === 'products') loadProducts();
-        else if (tabName === 'leads') loadLeads();
-    }
+    // Show manager name
+    document.getElementById('userName').textContent = getManagerName(session);
 
-    async function loadAnalytics() {
-        try {
-            let res = await fetch('http://localhost:8080/bankmanager/analytics');
-            let data = await res.json();
-            document.getElementById('statTotalLoans').textContent = data.totalLoans || 0;
-            document.getElementById('statTotalOutstanding').textContent = (data.totalOutstanding || 0).toFixed(2);
-        } catch (e) {
-            console.error(e);
-        }
-    }
+    // Seed default data
+    seedLoans();
 
-    async function loadProducts() {
-        try {
-            let res = await fetch('http://localhost:8080/bankmanager/products');
-            let products = await res.json();
-            let html = '';
-            products.forEach(p => {
-                html += `<tr>
-                    <td>${p.id}</td>
-                    <td>${p.loan_type}</td>
-                    <td>${p.interest_rate}%</td>
-                    <td><button class="btn btn-sm btn-outline-primary" onclick="openUpdateModal(${p.id}, ${p.interest_rate})">Update Rate</button></td>
-                </tr>`;
-            });
-            document.getElementById('productsTableBody').innerHTML = html;
-        } catch (e) {
-            console.error(e);
-        }
-    }
+    // Set new loan ID suggestion
+    var ncLoanId = document.getElementById('ncLoanId');
+    if (ncLoanId) ncLoanId.value = getNextLoanId();
 
-    function openUpdateModal(id, currentRate) {
-        document.getElementById('editProductId').value = id;
-        document.getElementById('editInterestRate').value = currentRate;
-        new bootstrap.Modal(document.getElementById('updateRateModal')).show();
-    }
+    // Render dashboard
+    renderDashboard();
 
-    async function saveInterestRate() {
-        let id = parseInt(document.getElementById('editProductId').value);
-        let rate = parseFloat(document.getElementById('editInterestRate').value);
-        
-        try {
-            let res = await fetch('http://localhost:8080/bankmanager/products', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: id, interest_rate: rate })
-            });
-            let data = await res.json();
-            if (data.status === 'success') {
-                alert('Rate updated successfully');
-                bootstrap.Modal.getInstance(document.getElementById('updateRateModal')).hide();
-                loadProducts();
-            } else {
-                alert('Error updating rate');
+    // ── New Customer Form ─────────────────────────────────────
+    document.getElementById('newCustForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var session = getSession();
+        var fn = document.getElementById('ncFirst').value.trim();
+        var ln = document.getElementById('ncLast').value.trim();
+        var em = document.getElementById('ncEmail').value.trim().toLowerCase();
+        var mob = document.getElementById('ncMobile').value.trim();
+        var lt = document.getElementById('ncLoanType').value;
+        var lid = document.getElementById('ncLoanId').value.trim();
+        var amt = parseFloat(document.getElementById('ncAmount').value)||0;
+        var ten = parseInt(document.getElementById('ncTenure').value)||0;
+        var adr = document.getElementById('ncAddress').value.trim();
+
+        if (!fn||!ln||!em||!mob||!lt||!lid||!amt||!ten) { alert('Please fill all fields.'); return; }
+
+        var loans = getLoans();
+        // Check loan ID unique
+        var lidLow = lid.toLowerCase();
+        var dupId = loans.find(function(l){ return String(l.loanId||'').toLowerCase() === lidLow; });
+        if (dupId) { alert('Loan ID "' + lid + '" already exists! Use: ' + getNextLoanId()); document.getElementById('ncLoanId').value = getNextLoanId(); return; }
+
+        // Check same customer same loan type
+        var dupType = loans.find(function(l){ return (l.email||'').toLowerCase()===em && (l.loanType||'').toLowerCase()===lt.toLowerCase(); });
+        if (dupType) { alert('Customer ' + em + ' already has a "' + lt + '". Please select a different loan type.'); return; }
+
+        var branch = session.branch_name || session.address || 'Main Branch';
+        loans.push({
+            email: em,
+            loanId: lid,
+            name: fn + ' ' + ln,
+            mobile: mob,
+            loanType: lt,
+            loanAmount: amt,
+            tenure: ten,
+            interestRate: lt==='Home Loan'?8.5:(lt==='Car Loan'?9.0:10.5),
+            address: adr,
+            manager_email: session.email||'',
+            manager_name: session.name||'',
+            branch_name: branch
+        });
+        saveLoans(loans);
+
+        // Try backend
+        fetch('http://127.0.0.1:8080/customers', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ firstName:fn, lastName:ln, email:em, mobile:mob, address:adr, loanType:lt, loanId:lid, income:amt, manager_email:session.email||'', manager_name:session.name||'', branch_name:branch })
+        }).catch(function(){});
+
+        alert('Customer created!\nLoan ID: ' + lid + '\nType: ' + lt + '\nAmount: ₹' + Number(amt).toLocaleString('en-IN') + '\nTenure: ' + ten + ' Months');
+        e.target.reset();
+        document.getElementById('ncLoanId').value = getNextLoanId();
+        bootstrap.Modal.getInstance(document.getElementById('newCustomerModal')).hide();
+        renderDashboard();
+    });
+
+    // ── Edit Customer Form ────────────────────────────────────
+    document.getElementById('editCustForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var em = document.getElementById('ecEmail').value.toLowerCase();
+        var fn = document.getElementById('ecFirst').value.trim();
+        var ln = document.getElementById('ecLast').value.trim();
+        var mob = document.getElementById('ecMobile').value.trim();
+        var lt = document.getElementById('ecLoanType').value;
+        var lid = document.getElementById('ecLoanId').value.trim();
+        var amt = parseFloat(document.getElementById('ecAmount').value)||0;
+        var ten = parseInt(document.getElementById('ecTenure').value)||0;
+        var adr = document.getElementById('ecAddress').value.trim();
+
+        var loans = getLoans();
+        loans.forEach(function(l, i) {
+            if ((l.email||'').toLowerCase() === em) {
+                loans[i].name = fn + ' ' + ln;
+                loans[i].mobile = mob;
+                loans[i].loanType = lt;
+                loans[i].loanId = lid;
+                loans[i].loanAmount = amt;
+                loans[i].tenure = ten;
+                loans[i].address = adr;
+                loans[i].interestRate = lt==='Home Loan'?8.5:(lt==='Car Loan'?9.0:10.5);
             }
-        } catch (e) {
-            console.error(e);
-        }
-    }
+        });
+        saveLoans(loans);
+        bootstrap.Modal.getInstance(document.getElementById('editCustModal')).hide();
+        renderDashboard();
+        alert('Customer details updated successfully!');
+    });
 
-    async function loadLeads() {
-        try {
-            let res = await fetch('http://localhost:8080/bankmanager/leads');
-            let leads = await res.json();
-            let html = '';
-            leads.forEach(l => {
-                html += `<tr>
-                    <td>${l.customer_name}</td>
-                    <td>${l.email}</td>
-                    <td>${l.mobile}</td>
-                    <td>${l.loan_type}</td>
-                    <td><span class="badge bg-info">${l.status}</span></td>
-                    <td>${l.created_at}</td>
-                </tr>`;
-            });
-            document.getElementById('leadsTableBody').innerHTML = html;
-        } catch (e) {
-            console.error(e);
-        }
-    }
+    // ── Add Loan Form ─────────────────────────────────────────
+    document.getElementById('addLoanForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var session = getSession();
+        var em = document.getElementById('alEmail').value.toLowerCase();
+        var mob = document.getElementById('alMobile').value;
+        var lt = document.getElementById('alLoanType').value;
+        var lid = document.getElementById('alLoanId').value.trim();
+        var amt = parseFloat(document.getElementById('alAmount').value)||0;
+        var ten = parseInt(document.getElementById('alTenure').value)||0;
+
+        if (!lt||!lid||!amt||!ten) { alert('Please fill all fields.'); return; }
+
+        var loans = getLoans();
+        var lidLow = lid.toLowerCase();
+        var dupId = loans.find(function(l){ return String(l.loanId||'').toLowerCase() === lidLow; });
+        if (dupId) { alert('Loan ID "' + lid + '" already exists! Use: ' + getNextLoanId()); document.getElementById('alLoanId').value = getNextLoanId(); return; }
+
+        var dupType = loans.find(function(l){ return (l.email||'').toLowerCase()===em && (l.loanType||'').toLowerCase()===lt.toLowerCase(); });
+        if (dupType) { alert('Customer already has a "' + lt + '". Select a different loan type.'); return; }
+
+        var existing = loans.find(function(l){ return (l.email||'').toLowerCase() === em; });
+        var name = existing ? (existing.name||'Customer') : 'Customer';
+        var branch = existing ? (existing.branch_name||'Main Branch') : (session.branch_name||'Main Branch');
+
+        loans.push({
+            email: em,
+            loanId: lid,
+            name: name,
+            mobile: mob,
+            loanType: lt,
+            loanAmount: amt,
+            tenure: ten,
+            interestRate: lt==='Home Loan'?8.5:(lt==='Car Loan'?9.0:10.5),
+            manager_email: session.email||'',
+            manager_name: session.name||'',
+            branch_name: branch
+        });
+        saveLoans(loans);
+        bootstrap.Modal.getInstance(document.getElementById('addLoanModal')).hide();
+        renderDashboard();
+        alert('Loan ' + lid + ' added successfully!');
+    });
+
+    // Open new customer modal → auto-fill next Loan ID
+    document.getElementById('newCustomerModal').addEventListener('show.bs.modal', function() {
+        document.getElementById('ncLoanId').value = getNextLoanId();
+    });
+});
 </script>
 </body>
 </html>

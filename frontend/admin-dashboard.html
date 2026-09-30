@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Smart Loan Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="common.js"></script>
+    <script>initAuthGuard(['Admin']);</script>
+    <style>
+        .sidebar { position: fixed; top: 0; left: 0; width: 250px; height: 100vh; background: #212529; padding-top: 20px; color: white; }
+        .sidebar a { display: block; padding: 15px 25px; color: rgba(255,255,255,0.8); text-decoration: none; transition: .3s; cursor: pointer; }
+        .sidebar a:hover, .sidebar a.active { background: rgba(255,255,255,.1); color: white; padding-left: 30px; border-left: 4px solid #0d6efd; }
+        .topbar { background: white; padding: 15px 30px; box-shadow: 0 2px 10px rgba(0,0,0,.05); display: flex; justify-content: space-between; align-items: center; margin-left: 250px; }
+        .content { margin-left: 250px; padding: 30px; }
+        .stat-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,.03); border: 1px solid #f0f0f0; }
+        .stat-card h6 { color: #6c757d; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; }
+        .stat-card h3 { color: #212529; font-weight: 700; margin-bottom: 0; }
+        .icon-box { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .bg-blue-light { background: #e3f2fd; color: #0d6efd; }
+        .bg-green-light { background: #d1e7dd; color: #198754; }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h4 class="text-center mb-4"><i class="bi bi-shield-lock-fill text-primary"></i> Master Admin</h4>
+        <a class="active d-flex justify-content-between align-items-center" id="nav-bm" onclick="showTab('bm')">
+            <span><i class="bi bi-briefcase-fill me-2"></i> Bank Managers</span>
+            <span class="badge bg-primary rounded-pill" id="statBM">0</span>
+        </a>
+        <a class="d-flex justify-content-between align-items-center" id="nav-cust" onclick="showTab('cust')">
+            <span><i class="bi bi-people-fill me-2"></i> All Customers</span>
+            <span class="badge bg-secondary rounded-pill" id="statCust">0</span>
+        </a>
+        <a class="d-flex justify-content-between align-items-center" id="nav-rates" onclick="showTab('rates')">
+            <span><i class="bi bi-percent me-2"></i> Loan Interest Rates</span>
+            <span class="badge bg-success rounded-pill" id="statProducts">0</span>
+        </a>
+        <a style="margin-top: auto;" onclick="logout()"><i class="bi bi-box-arrow-left me-2"></i> Logout</a>
+    </div>
+
+    <!-- Topbar -->
+    <div class="topbar">
+        <h5 class="m-0 fw-bold text-dark" id="pageTitle">System Overview</h5>
+        <div class="d-flex align-items-center">
+            <span class="fw-bold me-3 text-secondary"><i class="bi bi-person-circle"></i> Administrator</span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        
+        <!-- Bank Managers Tab -->
+        <div id="tab-bm">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold m-0">Bank Managers <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-6 align-middle ms-2 px-3 py-1">Total Managers: <span id="statBMHeader" class="fw-bold">0</span></span></h4>
+                <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#newBMModal">
+                    <i class="bi bi-plus-lg me-1"></i> Add Bank Manager
+                </button>
+            </div>
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <table class="table table-hover m-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Mobile</th>
+                                <th>Bank Branch</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bmTableBody">
+                            <tr><td colspan="6" class="text-center py-4">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customers Tab -->
+        <div id="tab-cust" style="display:none;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold m-0">All Customers <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fs-6 align-middle ms-2 px-3 py-1">Total Customers: <span id="statCustHeader" class="fw-bold">0</span></span></h4>
+            </div>
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <table class="table table-hover m-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Mobile</th>
+                                <th>Bank Branch</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="custTableBody">
+                            <tr><td colspan="6" class="text-center py-4">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loan Interest Rates Tab (List on Left, Add/Update Form on Right) -->
+        <div id="tab-rates" style="display:none;">
+            <div class="row g-4">
+                <!-- Left Side: Loan Products & Interest Rates List -->
+                <div class="col-lg-7">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold m-0 text-primary"><i class="bi bi-percent me-2"></i>Loan Products & Interest Rates</h5>
+                            <button class="btn btn-outline-primary btn-sm shadow-sm" onclick="loadLoanRates()"><i class="bi bi-arrow-clockwise me-1"></i> Refresh</button>
+                        </div>
+                        <div class="card-body p-0">
+                            <table class="table table-hover m-0 align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">LOAN NAME</th>
+                                        <th>INTEREST RATE (%)</th>
+                                        <th class="text-end pe-4">ACTION</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ratesTableBody">
+                                    <tr><td colspan="3" class="text-center py-4">Loading rates...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side: Add or Modify Loan Interest Form -->
+                <div class="col-lg-5">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white py-3 border-bottom">
+                            <h5 class="fw-bold m-0 text-dark"><i class="bi bi-plus-circle-fill me-2 text-primary"></i>Add / Update Loan Interest Rate</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <form id="addRateForm" onsubmit="saveNewOrUpdatedRate(event)">
+                                <input type="hidden" id="formProductId">
+                                <div class="mb-3">
+                                    <label class="form-label text-muted small fw-bold">LOAN NAME</label>
+                                    <input type="text" id="formLoanType" class="form-control bg-light" placeholder="e.g. Personal Loan or Gold Loan" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label text-muted small fw-bold">INTEREST RATE (%)</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" min="0" max="100" id="formInterestRate" class="form-control" placeholder="e.g. 12.50" required>
+                                        <span class="input-group-text fw-bold">%</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary flex-grow-1 fw-bold py-2 shadow-sm">
+                                        <i class="bi bi-check-circle me-1"></i> Save Loan Rate
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary py-2" onclick="resetRateForm()">
+                                        Clear
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- New Bank Manager Modal -->
+    <div class="modal fade" id="newBMModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header border-bottom-0 bg-light">
+            <h5 class="modal-title fw-bold"><i class="bi bi-briefcase-fill me-2 text-primary"></i>Create Bank Manager</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-4">
+            <form id="newBMForm">
+              <div class="row">
+                  <div class="col-md-6 mb-3"><label class="form-label text-muted small fw-bold">FIRST NAME</label><input type="text" id="bmFirstName" class="form-control bg-light" required></div>
+                  <div class="col-md-6 mb-3"><label class="form-label text-muted small fw-bold">LAST NAME</label><input type="text" id="bmLastName" class="form-control bg-light" required></div>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label text-muted small fw-bold">MOBILE NUMBER</label>
+                  <input type="text" id="bmMobile" class="form-control bg-light" maxlength="10" required>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label text-muted small fw-bold">BANK NAME</label>
+                  <select id="bmBankId" class="form-control bg-light" disabled required>
+                  </select>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label text-muted small fw-bold">CITY</label>
+                  <select id="bmCity" class="form-select bg-light" required>
+                      <option value="">Select City...</option>
+                      <option value="Chennai">Chennai</option>
+                      <option value="Coimbatore">Coimbatore</option>
+                      <option value="Madurai">Madurai</option>
+                      <option value="Tiruchirappalli (Trichy)">Tiruchirappalli (Trichy)</option>
+                      <option value="Salem">Salem</option>
+                      <option value="Tirunelveli">Tirunelveli</option>
+                      <option value="Erode">Erode</option>
+                      <option value="Vellore">Vellore</option>
+                      <option value="Thoothukudi (Tuticorin)">Thoothukudi (Tuticorin)</option>
+                      <option value="Dindigul">Dindigul</option>
+                      <option value="Thanjavur">Thanjavur</option>
+                      <option value="Tiruppur">Tiruppur</option>
+                      <option value="Karur">Karur</option>
+                      <option value="Nagercoil">Nagercoil</option>
+                      <option value="Cuddalore">Cuddalore</option>
+                      <option value="Kanchipuram">Kanchipuram</option>
+                      <option value="Sivakasi">Sivakasi</option>
+                      <option value="Hosur">Hosur</option>
+                      <option value="Namakkal">Namakkal</option>
+                      <option value="Dharmapuri">Dharmapuri</option>
+                  </select>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label text-muted small fw-bold">BRANCH</label>
+                  <input type="text" id="bmBranch" class="form-control bg-light" placeholder="e.g. Anna Nagar Branch" required>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label text-muted small fw-bold">EMAIL ADDRESS</label>
+                  <input type="email" id="bmEmail" class="form-control bg-light" required>
+              </div>
+              <div class="mb-4">
+                  <label class="form-label text-muted small fw-bold">PASSWORD</label>
+                  <div class="input-group">
+                      <input type="password" id="bmPassword" class="form-control bg-light" required>
+                      <button type="button" class="btn btn-outline-secondary" onclick="toggleBMPassword()">
+                          <i class="bi bi-eye" id="bmEyeIcon"></i>
+                      </button>
+                  </div>
+              </div>
+              <button type="submit" class="btn btn-primary w-100 fw-bold py-2">Create Account</button>
+            </form>
+          </div>
+        </div>
+    </div>
+
+    <!-- Edit Interest Rate Modal -->
+    <div class="modal fade" id="editRateModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header border-bottom-0 bg-light">
+            <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2 text-primary"></i>Modify Loan Interest Rate</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-4">
+            <form id="editRateForm" onsubmit="saveInterestRate(event)">
+              <input type="hidden" id="editRateProductId">
+              <div class="mb-3">
+                  <label class="form-label text-muted small fw-bold">LOAN NAME</label>
+                  <input type="text" id="editRateLoanType" class="form-control bg-light" readonly>
+              </div>
+              <div class="mb-4">
+                  <label class="form-label text-muted small fw-bold">NEW INTEREST RATE (%)</label>
+                  <div class="input-group">
+                      <input type="number" step="0.01" min="0" max="100" id="editRateValue" class="form-control" placeholder="e.g. 12.50" required>
+                      <span class="input-group-text fw-bold">%</span>
+                  </div>
+              </div>
+              <button type="submit" class="btn btn-primary w-100 fw-bold py-2">Save Interest Rate</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="admin-dashboard.js"></script>
+</body>
+</html>

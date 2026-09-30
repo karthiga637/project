@@ -72,8 +72,8 @@ public class BankManagerServlet extends HttpServlet {
         if ("/products".equals(path)) {
             try {
                 Map<String, Object> data = mapper.readValue(request.getReader(), Map.class);
-                int productId = ((Double) data.get("id")).intValue();
-                double newRate = (Double) data.get("interest_rate");
+                int productId = ((Number) data.get("id")).intValue();
+                double newRate = ((Number) data.get("interest_rate")).doubleValue();
                 
                 boolean updated = updateProductRate(productId, bankId, newRate);
                 response.setContentType("application/json");
@@ -86,19 +86,50 @@ public class BankManagerServlet extends HttpServlet {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 response.getWriter().write("{\"error\":\"" + e.getMessage() + "\"}");
             }
+        } else if ("/loans/approve".equals(path)) {
+            try {
+                Map<String, Object> data = mapper.readValue(request.getReader(), Map.class);
+                int loanId = ((Number) data.get("loanId")).intValue();
+                
+                LoanDAO loanDAO = new LoanDAO();
+                boolean approved = loanDAO.approveLoan(loanId);
+                
+                response.setContentType("application/json");
+                if (approved) {
+                    response.getWriter().write("{\"status\":\"success\"}");
+                } else {
+                    response.getWriter().write("{\"status\":\"error\",\"message\":\"Could not approve loan\"}");
+                }
+            } catch (Exception e) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("{\"error\":\"" + e.getMessage() + "\"}");
+            }
         }
+    }
+
+    private String getBankName(int bankId) {
+        try (Connection con = DBConnection.getConnection()) {
+            PreparedStatement ps = con.prepareStatement("SELECT bank_name FROM banks WHERE id = ?");
+            ps.setInt(1, bankId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getString("bank_name");
+        } catch (Exception e) { e.printStackTrace(); }
+        return "";
     }
 
     private Map<String, Object> getAnalytics(int bankId) {
         Map<String, Object> stats = new LinkedHashMap<>();
+        String bankName = getBankName(bankId);
+        String likePattern = bankName + " %";
+
         try (Connection con = DBConnection.getConnection()) {
-            PreparedStatement ps1 = con.prepareStatement("SELECT COUNT(*) as total FROM loans l JOIN bank_products bp ON l.loan_type = bp.loan_type WHERE bp.bank_id = ?");
-            ps1.setInt(1, bankId);
+            PreparedStatement ps1 = con.prepareStatement("SELECT COUNT(*) as total FROM loans WHERE loan_type LIKE ?");
+            ps1.setString(1, likePattern);
             ResultSet r1 = ps1.executeQuery();
             if (r1.next()) stats.put("totalLoans", r1.getInt("total"));
 
-            PreparedStatement ps2 = con.prepareStatement("SELECT COALESCE(SUM(l.outstanding_balance),0) as total FROM loans l JOIN bank_products bp ON l.loan_type = bp.loan_type WHERE bp.bank_id = ?");
-            ps2.setInt(1, bankId);
+            PreparedStatement ps2 = con.prepareStatement("SELECT COALESCE(SUM(outstanding_balance),0) as total FROM loans WHERE loan_type LIKE ?");
+            ps2.setString(1, likePattern);
             ResultSet r2 = ps2.executeQuery();
             if (r2.next()) stats.put("totalOutstanding", r2.getDouble("total"));
             
@@ -142,12 +173,15 @@ public class BankManagerServlet extends HttpServlet {
 
     private List<Map<String, Object>> getLeads(int bankId) {
         List<Map<String, Object>> list = new ArrayList<>();
+        String bankName = getBankName(bankId);
+        String likePattern = bankName + " %";
+
         try (Connection con = DBConnection.getConnection()) {
             PreparedStatement ps = con.prepareStatement(
-                "SELECT l.id, c.first_name, c.last_name, c.email, c.mobile, l.loan_type, l.status, l.created_at " +
-                "FROM leads l JOIN customers c ON l.customer_id = c.id WHERE l.bank_id = ? ORDER BY l.created_at DESC"
+                "SELECT l.id, c.first_name, c.last_name, c.email, c.mobile, l.loan_type, l.status, l.created_at, l.loan_amount, l.tenure_months " +
+                "FROM loans l JOIN customers c ON l.customer_id = c.id WHERE l.loan_type LIKE ? AND l.status = 'Pending' ORDER BY l.created_at DESC"
             );
-            ps.setInt(1, bankId);
+            ps.setString(1, likePattern);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 Map<String, Object> row = new LinkedHashMap<>();
@@ -156,6 +190,8 @@ public class BankManagerServlet extends HttpServlet {
                 row.put("email", rs.getString("email"));
                 row.put("mobile", rs.getString("mobile"));
                 row.put("loan_type", rs.getString("loan_type"));
+                row.put("loan_amount", rs.getDouble("loan_amount"));
+                row.put("tenure_months", rs.getInt("tenure_months"));
                 row.put("status", rs.getString("status"));
                 row.put("created_at", rs.getString("created_at"));
                 list.add(row);

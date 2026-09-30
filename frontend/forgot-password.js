@@ -1,3 +1,7 @@
+let otpModalObj = null;
+let verifiedEmail = "";
+let validatedOtp = "";
+
 // Toggle password visibility
 function togglePassword(inputId, iconId) {
     const input = document.getElementById(inputId);
@@ -14,67 +18,88 @@ function togglePassword(inputId, iconId) {
     }
 }
 
-let verifiedEmail = "";
-let verifiedMobile = "";
-
-// Step 1: Verify Identity
-function verifyIdentity() {
-    const email = document.getElementById("email").value;
-    const mobile = document.getElementById("mobile").value;
+// Step 1: Send OTP to verify identity
+async function sendResetOTP() {
+    const email = document.getElementById("email").value.trim();
     const msg = document.getElementById("verifyMsg");
     const btn = document.getElementById("verifyBtn");
 
-    if (!email || !mobile) {
+    if (!email) {
         msg.className = "alert alert-warning mt-3";
-        msg.innerHTML = "Please enter both Email and Mobile Number.";
+        msg.innerHTML = "Please enter your Email Address.";
         msg.style.display = "block";
         return;
     }
 
     msg.style.display = "none";
-    btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Verifying...`;
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending OTP...`;
     btn.disabled = true;
 
-    // Call the backend to verify
-    fetch("http://localhost:8080/reset-password?action=verify", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ email: email, mobile: mobile })
-    })
-    .then(response => response.json())
-    .then(data => {
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+        // Send OTP with type "forgot" so the backend knows to check if email EXISTS
+        const res = await fetch("http://127.0.0.1:8080/send-otp", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email, type: "forgot" }),
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
+        const data = await res.json();
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+        
         if (data.status === "success") {
-            // Verification successful
-            verifiedEmail = email;
-            verifiedMobile = mobile;
+            verifiedEmail = email; // Temporarily store it
             
-            // Hide verify form, show reset form
-            document.getElementById("verifyForm").style.display = "none";
-            document.getElementById("resetForm").style.display = "block";
-            document.getElementById("page-subtitle").innerText = "Enter your new password below";
+            if (!otpModalObj) otpModalObj = new bootstrap.Modal(document.getElementById('otpModal'));
+            document.getElementById('otpMsg').style.display = 'none';
+            document.querySelectorAll('.otp-input').forEach(i => i.value = '');
+            otpModalObj.show();
+            setTimeout(() => document.getElementById('otp1').focus(), 500);
             
         } else {
             msg.className = "alert alert-danger mt-3";
-            msg.innerHTML = data.message || "Invalid Email or Mobile Number.";
+            msg.innerHTML = data.message || "Failed to send OTP.";
             msg.style.display = "block";
-            btn.innerHTML = `<i class="bi bi-person-check"></i> Verify Identity`;
-            btn.disabled = false;
         }
-    })
-    .catch(error => {
-        console.error("Error:", error);
+    } catch (error) {
         msg.className = "alert alert-danger mt-3";
         msg.innerHTML = "Server error. Please make sure the backend is running.";
         msg.style.display = "block";
-        btn.innerHTML = `<i class="bi bi-person-check"></i> Verify Identity`;
+        btn.innerHTML = originalHtml;
         btn.disabled = false;
-    });
+    }
 }
 
-// Step 2: Reset Password
-function resetPassword() {
+// Step 2: Verify OTP
+function verifyOTPAndShowReset() {
+    const otp = document.getElementById('otp1').value + 
+                document.getElementById('otp2').value + 
+                document.getElementById('otp3').value + 
+                document.getElementById('otp4').value;
+                
+    if (otp.length < 4) return;
+    
+    // For Reset Password, we will pass the OTP directly to the reset-password API along with the new password
+    // So we just close the modal and show the reset form. We don't need a separate verify call here!
+    // But we need to save the OTP to send it with the new password.
+    validatedOtp = otp;
+    
+    otpModalObj.hide();
+    
+    // Hide verify form, show reset form
+    document.getElementById("verifyForm").style.display = "none";
+    document.getElementById("resetForm").style.display = "block";
+    document.getElementById("page-subtitle").innerText = "Enter your new password below";
+}
+
+// Step 3: Reset Password
+async function resetPassword() {
     const newPassword = document.getElementById("newPassword").value;
     const confirmPassword = document.getElementById("confirmPassword").value;
     const msg = document.getElementById("resetMsg");
@@ -102,23 +127,23 @@ function resetPassword() {
     }
 
     msg.style.display = "none";
+    const originalHtml = btn.innerHTML;
     btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...`;
     btn.disabled = true;
 
-    // Call backend to update password
-    fetch("http://localhost:8080/reset-password?action=reset", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ 
-            email: verifiedEmail, 
-            mobile: verifiedMobile, 
-            newPassword: newPassword 
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
+    try {
+        const res = await fetch("http://127.0.0.1:8080/reset-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+                email: verifiedEmail, 
+                otp: validatedOtp, 
+                newPassword: newPassword 
+            })
+        });
+        
+        const data = await res.json();
+        
         if (data.status === "success") {
             msg.className = "alert alert-success mt-3";
             msg.innerHTML = "Password reset successful! Redirecting to login...";
@@ -131,18 +156,31 @@ function resetPassword() {
             
         } else {
             msg.className = "alert alert-danger mt-3";
-            msg.innerHTML = data.message || "Failed to update password.";
+            msg.innerHTML = data.message || "Invalid OTP or failed to update password.";
             msg.style.display = "block";
-            btn.innerHTML = `<i class="bi bi-key"></i> Update Password`;
+            btn.innerHTML = originalHtml;
             btn.disabled = false;
         }
-    })
-    .catch(error => {
-        console.error("Error:", error);
+    } catch (error) {
         msg.className = "alert alert-danger mt-3";
         msg.innerHTML = "Server error. Please try again later.";
         msg.style.display = "block";
-        btn.innerHTML = `<i class="bi bi-key"></i> Update Password`;
+        btn.innerHTML = originalHtml;
         btn.disabled = false;
-    });
+    }
 }
+
+// Auto-advance OTP inputs
+document.addEventListener('DOMContentLoaded', () => {
+    const inputs = document.querySelectorAll('.otp-input');
+    inputs.forEach((input, index) => {
+        input.addEventListener('keyup', function(e) {
+            if (this.value.length === 1 && index < inputs.length - 1) {
+                inputs[index + 1].focus();
+            }
+            if (e.key === 'Backspace' && index > 0) {
+                inputs[index - 1].focus();
+            }
+        });
+    });
+});

@@ -1,0 +1,568 @@
+                                                                        
+TESTING AND VALIDATION
+MODULE 1 : User registration and authentication
+A)Functional 
+Testing
+User Registration:
+  
+Test ID
+Test Scenario
+Input
+Expected Output
+Actual Output
+Status
+REG_001
+Register with valid details
+Valid name, email, password, register number
+User account created successfully
+Account created
+Pass
+REG_002
+Register with existing email
+Already registered email
+"Email
+ already
+ register
+ed”
+message
+Email already registered
+Pass
+REG_003
+Register with invalid email format
+abc@gmail.com
+“Only valid TC Arts student emails are allowed” message
+Only valid TC Arts student emails are allowed
+Pass
+REG_004
+Register with empty fields
+Name/email/password empty
+Required field validation message
+Error displayed
+Pass
+REG_005
+Register with
+out required number of password length
+Password: 123
+“Password must be atleast 6 characters” message
+Password must be atleast 6 characters
+Pass
+REG_006
+Verify OTP with correct OTP
+Valid OTP
+Account verification successful
+User verified
+Pass
+REG_007
+Verify OTP with wrong OTP
+Invalid OTP
+“Invalid OTP”message
+Invalid OTP
+Pass
+REG_008
+Resend OTP
+Click resend OTP
+New OTP sent successfully
+OTP received
+Pass
+Login Authentication Test Cases :
+ 
+Test ID
+Test scenario
+Input
+Expected Output
+Actual Output
+Status
+LOGIN_001
+Login with valid credentials
+Correct email + password
+Login successful, JWT token generated
+Dashboard opened
+Pass
+LOGIN_002
+Login with wrong password
+Correct email + wrong password
+“Invalid password”
+message
+Invalid password
+Pass
+LOGIN_003
+Login with unregistered email
+New email
+“Email not registered”
+message
+Email not registered
+Pass
+LOGIN_004
+Login with empty fields
+Empty email/password
+Validation error
+Error displayed
+Pass
+B)Non Funtional Testing :
+1.Performance Testing
+  
+Check how quickly login and registration respond
+Test ID
+Scenario
+Test Condition
+Expected Result
+PERF_001
+Login response time
+Send login request
+Response should come within acceptable time
+PERF_002
+Multiple users login
+Multiple login requests simultaneously
+System should handle requests without failure
+2.Security Testing
+Test ID
+Scenario
+Expected Result
+SEC_001
+Register new user
+Password stored as BCrypt encrypted hash
+SEC_002
+Access protected API without JWT
+Request should be rejected
+SEC_003
+Invalid JWT token
+User should not access protected resources
+3.Usability Testing 
+Test ID
+Scenario
+Expected Result
+USE_001
+Registration form validation
+User should understand error messages
+USE_002
+Login failure message
+Clear error should be displayed
+USE_003
+OTP verification UI
+Easy to enter and verify OTP
+4.Reliability Testing
+Test ID
+Scenario
+Expected Result
+REL_001
+Multiple login attempts
+System should work without crash
+REL_002
+Server restart after registration
+User data should remain safe
+5.Compatability Testing
+Test ID
+Scenario
+Expected Result
+COM_001
+Open 
+page in any browser
+Works properly
+COM_00
+2
+Mobile screen login
+Responsive UI
+MODULE 2 : PROFILE MANAGEMENT
+A)Funtional Testing
+Profile view and update test cases
+Test ID
+Test Scenario
+Test Input
+Expected Output
+Actual Output
+Status
+PROF_001
+View own profile with valid login
+Valid JWT token
+Student profile details displayed
+Profile displayed
+Pass
+PROF_002
+Access profile without login
+No JWT token
+Access denied
+Redirected to login
+Pass
+PROF_003
+Update profile with valid details
+Change name, phone number, department
+Profile updated successfully
+Profile updated
+Pass
+PROF_004
+Update profile with empty fields
+Empty name/required fields
+Validation error message displayed
+Error displayed
+Pass
+PROF_005
+Update profile with invalid data
+Invalid phone number
+Invalid data error displayed
+Error displayed
+Pass
+PROF_006
+Upload profile image
+Select valid image file
+“Image uploaded successfully”
+M
+e
+ssage
+Image displayed
+Pass
+PROF_007
+Upload unsupported image format
+Upload invalid file type
+File format error displayed
+Error displayed
+Pass
+PROF_00
+8
+Update profile and logout/login again
+Updated details
+Changes should persist
+Updated data retrieved
+Pass
+B)Non Functional Testing
+1.Security Testing
+Test ID
+Scenario
+Expected Result
+PROF_SEC_001
+Access profile API without JWT token
+Request should be rejected
+PROF_SEC_002
+Upload malicious file as profile image
+File upload should be restricted
+2.Performance Testing
+Test ID
+Scenario
+Expected Result
+PROF_PERF_001
+Load profile details
+Profile should load within acceptable time
+PROF_PERF_002
+Upload profile image
+Image upload should complete without delay
+PROF_PERF_003
+Multiple users viewing profiles
+System should respond properly
+3.Usability Testing
+Test ID
+Scenario
+Expected Result
+PROF_USE_001
+Navigate to profile page
+Profile page should be easy to access
+PROF_USE_002
+Edit profile details
+Clear input fields and update option should be available
+PROF_USE_003
+Display validation messages
+Error messages should be understandable
+4.Reliability Testing
+Test ID
+Scenario
+Expected Result
+PROF_REL_001
+Update profile multiple times
+Data should save correctly every time
+PROF_REL_002
+Refresh after profile update
+Updated information should remain available
+PROF_REL_003
+Restart application and login again
+Profile data should be retrieved successfully
+5.Compatability Testing
+Test ID
+Scenario
+Expected Result
+PROF_COM_001
+Open profile in Chrome
+Works correctly
+PROF_COM_002
+Open profile in Edge
+Works correctly
+PROF_COM_003
+View profile on mobile screen
+Responsive display
+MODULE 3 : PRODUCT MANAGEMENT 
+A)Functional Testing
+Test ID
+Test Scenario
+Test Input
+Expected Result
+Actual Result
+Status
+PROD_001
+Add product with valid details
+Name, description, category, type, price, condition
+Product added successfully
+Product added
+Pass
+PROD_002
+Add product without mandatory fields
+Empty name/category/type
+Validation error message displayed
+Error displayed
+Pass
+PROD_003
+Add product with invalid price
+Negative price value
+Price validation error displayed
+Error displayed
+Pass
+PROD_004
+Upload valid product image format
+JPG/PNG image files
+Images uploaded successfully
+Images displayed
+Pass
+PROD_005
+Upload invalid image format
+Unsupported file type
+File format error displayed
+Error displayed
+Pass
+PROD_006
+View all available products
+Open Products section
+List of products displayed
+Products displayed
+Pass
+PROD_007
+View product details
+Select a product
+Complete product details displayed
+Details displayed
+Pass
+PROD_008
+View own products
+Logged-in student opens My Products
+Student's uploaded products displayed
+Products displayed
+Pass
+PROD_009
+Update product details
+Select edit option
+Product details updated successfully
+Updated successfully
+Pass
+PROD_010
+Delete own product
+Select delete option
+Product removed successfully
+Product deleted
+Pass
+PROD_011
+View seller profile from product
+Click seller name/profile
+Seller details and uploaded products displayed
+Profile displayed
+Pass
+B)Non Functional Testing
+1.Security Testing
+ 
+Test ID
+Scenario
+Expected Result
+PROD_SEC_001
+Add product without JWT token
+Request should be rejected
+PROD_SEC_002
+Update product without authentication
+Access denied
+PROD_SEC_003
+Delete product using another user's token
+Operation should fail
+PROD_SEC_004
+Upload malicious file as product image
+File upload should be restricted
+2.Performance Testing
+Test ID
+Scenario
+Expected Result
+PROD_PERF_001
+Load product listing page
+Products should load within acceptable time
+PROD_PERF_002
+Upload multiple product images
+Upload should complete successfully
+PROD_PERF_003
+View product details repeatedly
+System should respond without delay
+PROD_PERF_004
+Multiple users browse products
+Application should handle requests properly
+3.Usability Testing
+Test ID
+Scenario
+Expected Result
+PROD_USE_001
+Add product through form
+Form should be easy to understand
+PROD_USE_002
+Display product cards
+Product information should be clearly visible
+PROD_USE_003
+Product update/delete options
+Actions should be easy to access
+PROD_USE_004
+Image preview before upload
+User should understand selected images
+4.Reliability Testing
+Test ID
+Scenario
+Expected Result
+PROD_REL_001
+Add multiple products continuously
+All products should be saved correctly
+PROD_REL_002
+Restart application and view products
+Existing product data should load successfully
+PROD_REL_003
+Update product multiple times
+Data should remain consistent
+5.Compatability Testing
+Test ID
+Scenario
+Expected Result
+PROD_COM_001
+Open product page in Chrome
+Works correctly
+PROD_COM_002
+Open product page in Edge
+Works correctly
+PROD_COM_003
+View product page on mobile screen
+Responsive display
+White Box Testing
+Objective
+White Box Testing was performed to verify the internal logic, methods, and implementation of backend components. The testing focused on validating service classes, authentication logic, database operations, and security configurations.
+Class/Component
+Internal Logic Tested
+Expected Result
+Result
+AuthService
+User registration, login validation, password encryption, and user data storage logic
+User should be registered successfully and valid users should be authenticated
+Pass
+JwtUtil
+JWT token generation and token validation logic
+JWT token should be generated after successful login and validated for protected requests
+Pass
+ProfileService
+Profile retrieval and profile update operations
+User profile details should be fetched and updated correctly
+Pass
+ProductService
+Product creation, retrieval, update, deletion, and image handling logic
+Product operations should execute according to user permissions
+Pass
+SecurityConfig
+ API authorization rules, and access control logic
+Protected APIs should allow only authenticated users
+Pass
+Black Box Testing
+Objective
+Black Box Testing was performed to validate the functionality of the application by testing user inputs and expected outputs without considering the internal implementation details of the system.
+Module
+Test Scenario
+Input Given
+Expected Result
+Result
+User Registration
+Register with valid details
+Name, email, password, register number
+New user account should be created successfully
+Pass
+User Registration
+Register with existing email
+Already registered email
+System should display user already exists message
+Pass
+User Registration
+Register with invalid email format
+Incorrect email format
+Registration should be rejected
+Pass
+Authentication
+Login with valid credentials
+Correct email and password
+User should login successfully and receive JWT token
+Pass
+Authentication
+Login with invalid credentials
+Wrong password
+Login should fail with error message
+Pass
+Profile Management
+View profile details
+Logged-in user request
+User profile details should be displayed
+Pass
+Profile Management
+Update profile information
+Modified profile data
+Profile should be updated successfully
+Pass
+Product Management
+Add product with valid details
+Product name, category, price, images,type
+Product should be added successfully
+Pass
+Product Management
+Add product with missing fields
+Empty product fields
+Product creation should be rejected
+Pass
+Product Management
+View products
+Request product list
+Available products should be displayed
+Pass
+Product Management
+Update product details
+Modified product information
+Product should be updated successfully
+Pass
+Product Management
+Delete product
+Product ID
+Selected product should be removed
+Pass
+Grey Box Testing
+Objective
+Grey Box Testing was performed to validate the interaction between frontend, backend services, database, and authentication mechanisms. The testing was carried out with partial knowledge of the internal system architecture.
+Integration Tested
+Testing Scenario
+Expected Result
+Result
+Frontend ↔ Authentication API
+User enters login credentials from React frontend
+Request should reach backend and return JWT token after successful authentication
+Pass
+JWT Authentication ↔ Protected APIs
+Access product APIs using valid JWT token
+Backend should validate token and allow access
+Pass
+JWT Authentication ↔ Protected APIs
+Access protected APIs without JWT token
+Backend should reject unauthorized requests
+Pass
+Frontend ↔ Profile API
+View and update profile from frontend
+Updated profile data should be stored and displayed correctly
+Pass
+Frontend ↔ Product API
+Add product through frontend form
+Product details and images should be stored in database
+Pass
+Product API ↔ Database
+Retrieve product list
+Product information should be fetched correctly from database
+Pass
+Product Service ↔ Database
+Update and delete product operations
+Database records should be modified correctly
+Pass

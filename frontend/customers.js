@@ -1,5 +1,5 @@
 
-const API = 'http://localhost:8080';
+const API = 'http://127.0.0.1:8080';
 
 // ── Initialization ─────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
@@ -13,7 +13,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // KICK OUT CUSTOMERS!
     if (session.role === 'Customer') {
-        window.location.href = 'dashboard.html';
+        window.location.href = 'customer.html';
         return;
     }
 

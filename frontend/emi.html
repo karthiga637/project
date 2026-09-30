@@ -1,808 +1,371 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>EMI Tracking | Smart Loan Management</title>
-
+<title>Repayments & EMI Schedule | Smart Loan Management</title>
+<!-- Bootstrap CSS -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<!-- Global Styles -->
+<link rel="stylesheet" href="style.css">
+<script src="common.js"></script>
+<script>initAuthGuard(['Customer']);</script>
 <style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:'Segoe UI',sans-serif;
-}
-
-body{
-background:#f4f7fc;
-overflow-x:hidden;
-}
-
-.sidebar{
-position:fixed;
-top:0;
-left:0;
-width:250px;
-height:100vh;
-background:#0d6efd;
-color:white;
-padding-top:20px;
-}
-
-.sidebar h3{
-text-align:center;
-margin-bottom:30px;
-font-weight:bold;
-}
-
-.sidebar a{
-display:block;
-color:white;
-text-decoration:none;
-padding:15px 25px;
-transition:.3s;
-}
-
-.sidebar a:hover{
-background:rgba(255,255,255,.15);
-padding-left:35px;
-}
-
-.sidebar a.active{
-background:rgba(255,255,255,.25);
-border-left:5px solid white;
-}
-
-.sidebar i{
-margin-right:10px;
-}
-
-.main{
-margin-left:250px;
-min-height:100vh;
-}
-
-.topbar{
-background:white;
-padding:15px 30px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-box-shadow:0 3px 10px rgba(0,0,0,.08);
-}
-
-.profile{
-display:flex;
-align-items:center;
-gap:15px;
-}
-
-.profile img{
-width:45px;
-height:45px;
-border-radius:50%;
-}
-
-.container-box{
-padding:30px;
-}
-
-.card{
-border:none;
-border-radius:15px;
-box-shadow:0 5px 15px rgba(0,0,0,.08);
-transition:.3s;
-}
-
-.card:hover{
-transform:translateY(-5px);
-}
-
-.icon{
-font-size:40px;
-}
-
-.blue{
-color:#0d6efd;
-}
-
-.green{
-color:#198754;
-}
-
-.orange{
-color:#fd7e14;
-}
-
-.red{
-color:#dc3545;
-}
-
-.search-box{
-background:white;
-padding:20px;
-border-radius:15px;
-box-shadow:0 5px 15px rgba(0,0,0,.08);
-margin-top:25px;
-}
-
-.progress{
-height:18px;
-}
-
+*{ margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
+body{ background:#f5f7fb; overflow-x:hidden; }
+.sidebar{ position:fixed; top:0; left:0; width:250px; height:100vh; background:#0d6efd; color:white; padding-top:20px; z-index:1000; }
+.sidebar h3{ text-align:center; margin-bottom:30px; font-weight:bold; }
+.sidebar a{ display:block; color:white; text-decoration:none; padding:15px 25px; transition:.3s; }
+.sidebar a:hover, .sidebar a.active{ background:rgba(255,255,255,.18); padding-left:32px; }
+.sidebar i{ margin-right:10px; }
+.main{ margin-left:250px; min-height:100vh; padding-bottom:50px; }
+.topbar{ background:white; padding:15px 30px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 3px 10px rgba(0,0,0,.08); }
+.container-box{ padding:30px; }
+.card{ border:none; border-radius:12px; box-shadow:0 5px 15px rgba(0,0,0,.05); transition:.3s; }
+.card:hover{ transform:translateY(-2px); }
+.icon{ font-size:36px; width:55px; height:55px; border-radius:12px; display:flex; align-items:center; justify-content:center; }
+.blue{ background:#e7f1ff; color:#0d6efd; }
+.green{ background:#e6f4ea; color:#198754; }
+.orange{ background:#fff3cd; color:#ffc107; }
+.red{ background:#f8d7da; color:#dc3545; }
+.search-box{ background:white; padding:20px; border-radius:12px; box-shadow:0 5px 15px rgba(0,0,0,.05); margin-top:25px; }
 </style>
-
 </head>
 
 <body>
 
 <!-- Sidebar -->
 <div class="sidebar">
-<div>
-<h3><i class="bi bi-bank2"></i> Smart Loan</h3>
-<a href="dashboard.html" class=""><i class="bi bi-speedometer2"></i> Dashboard</a>
-<a href="customers.html" class="admin-only"><i class="bi bi-people"></i> Customers</a>
-<a href="loans.html" class=""><i class="bi bi-cash-stack"></i> <span class="sidebarLoansText">My Loans</span></a>
-<a href="emi.html" class=""><i class="bi bi-credit-card"></i> Repayments</a>
-<a href="ai-insights.html" class=""><i class="bi bi-cpu"></i> AI Insights</a>
-<a href="profile.html" class=""><i class="bi bi-person"></i> Profile</a>
-<a href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Logout</a>
+    <h3><i class="bi bi-bank2 me-2"></i>Smart Loan</h3>
+    <a href="customer.html"><i class="bi bi-speedometer2"></i> Dashboard</a>
+    <a href="loans.html"><i class="bi bi-cash-stack"></i> My Loans</a>
+    <a href="emi.html" class="active"><i class="bi bi-credit-card"></i> Repayments</a>
+    <a href="profile.html"><i class="bi bi-person"></i> Profile</a>
+    <a href="#" onclick="logout(); return false;"><i class="bi bi-box-arrow-right"></i> Logout</a>
 </div>
 
-<!-- AI Help Card pushed to bottom -->
-<div class="mt-auto p-3 mb-5 mx-3 rounded" style="background: rgba(255, 255, 255, 0.15);">
-    <h6 class="text-white fw-bold"><i class="bi bi-robot me-2"></i>Need Help?</h6>
-    <p class="text-white-50" style="font-size: 0.85rem; margin-bottom: 10px;">Ask our AI assistant about your loans and EMIs.</p>
-    <button class="btn btn-light btn-sm w-100 fw-bold text-primary" onclick="if(window.toggleVoiceAssistant) toggleVoiceAssistant();">
-        <i class="bi bi-mic-fill me-1"></i> Talk to AI
-    </button>
-</div>
-</div>
+<!-- Main Content -->
 <div class="main">
+    <!-- Topbar -->
+    <div class="topbar">
+        <div>
+            <h4 class="fw-bold m-0" id="pageTitle">My Repayments & EMI Schedule</h4>
+            <small class="text-muted" id="welcomeMsg">Welcome back</small>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <i class="bi bi-bell-fill fs-5 text-secondary"></i>
+            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width:40px;height:40px;font-size:1.1rem;" id="custAvatar">C</div>
+            <div>
+                <div class="fw-bold" id="user-name">Customer</div>
+                <small class="text-muted" id="custEmailDisplay">customer@smartloan.com</small>
+            </div>
+        </div>
+    </div>
 
-<div class="container-box">
+    <!-- Container Box -->
+    <div class="container-box">
+        <!-- Summary Cards -->
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="card p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted fw-bold text-uppercase">Total EMIs</small>
+                            <h3 class="fw-bold m-0 mt-1" id="totalEmis">0</h3>
+                        </div>
+                        <div class="icon blue"><i class="bi bi-credit-card-2-front-fill"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted fw-bold text-uppercase">Paid EMIs</small>
+                            <h3 class="fw-bold m-0 mt-1" id="paidEmis">0</h3>
+                        </div>
+                        <div class="icon green"><i class="bi bi-check-circle-fill"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted fw-bold text-uppercase">Due EMIs</small>
+                            <h3 class="fw-bold m-0 mt-1" id="dueEmis">0</h3>
+                        </div>
+                        <div class="icon orange"><i class="bi bi-clock-fill"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted fw-bold text-uppercase">Overdue EMIs</small>
+                            <h3 class="fw-bold m-0 mt-1" id="overdueEmis">0</h3>
+                        </div>
+                        <div class="icon red"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-<div class="row g-4">
+        <!-- Original Loan Information Repayment Header Banner -->
+        <div class="card border-0 shadow-sm mt-4 mb-4" id="repaymentHeaderBanner" style="background: linear-gradient(135deg, #0d6efd, #0b5ed7); color: white; border-radius: 12px;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center shadow-sm" style="width:52px;height:52px;font-size:1.5rem;">
+                            <i class="bi bi-bank2"></i>
+                        </div>
+                        <div>
+                            <div class="text-white-50 small text-uppercase fw-bold letter-spacing-1">Loan Repayment Header</div>
+                            <h4 class="fw-bold m-0 text-white" id="headerLoanId">Loan #HDFC-2026-9</h4>
+                        </div>
+                        <span class="badge bg-light text-primary px-3 py-2 fw-bold fs-6 shadow-sm" id="headerLoanType">Personal Loan</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-4 flex-wrap">
+                        <div class="text-center px-2">
+                            <div class="text-white-50 small text-uppercase fw-bold">Original Principal</div>
+                            <div class="fs-4 fw-bold text-white" id="headerPrincipal">₹2,000</div>
+                        </div>
+                        <div class="text-center px-2 border-start border-white-50 ps-4">
+                            <div class="text-white-50 small text-uppercase fw-bold">Interest Rate</div>
+                            <div class="fs-4 fw-bold text-white" id="headerInterestRate">12.5%</div>
+                        </div>
+                        <div class="text-center px-2 border-start border-white-50 ps-4">
+                            <div class="text-white-50 small text-uppercase fw-bold">Tenure</div>
+                            <div class="fs-4 fw-bold text-white" id="headerTenure">5 Months</div>
+                        </div>
+                        <div class="text-center px-2 border-start border-white-50 ps-4">
+                            <div class="text-white-50 small text-uppercase fw-bold">Monthly EMI</div>
+                            <div class="fs-4 fw-bold text-warning" id="headerMonthlyEmi">₹413</div>
+                        </div>
+                        <div class="text-center px-2 border-start border-white-50 ps-4">
+                            <div class="text-white-50 small text-uppercase fw-bold">Outstanding Balance</div>
+                            <div class="fs-4 fw-bold text-white" id="headerOutstanding">₹2,000</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-<div class="col-md-3">
+        <!-- Search & Filter Box -->
+        <div class="search-box">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <select class="form-select fw-bold" id="selectLoanIdFilter" onchange="onLoanFilterDropdownChange(this.value)">
+                        <option value="">All My Loans</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="text" id="searchEmi" class="form-control" placeholder="Search Loan ID, Loan Type or Installment..." onkeyup="filterEMIs()">
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="emiStatus" onchange="filterEMIs()">
+                        <option value="">All Statuses</option>
+                        <option value="Upcoming">Upcoming</option>
+                        <option value="Due">Due</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Paid">Paid</option>
+                        <option value="Overdue">Overdue</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-grid">
+                    <button class="btn btn-primary fw-bold" onclick="filterEMIs()">
+                        <i class="bi bi-search me-1"></i> Search
+                    </button>
+                </div>
+            </div>
+        </div>
 
-<div class="card p-4">
+        <!-- Early Loan Closure Predictor Widget -->
+        <div class="card border-0 shadow-sm mt-4 mb-4" style="background: linear-gradient(135deg, rgba(13,110,253,0.05), #ffffff); border-left: 5px solid #0d6efd !important;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+                    <div>
+                        <h5 class="fw-bold text-primary mb-1"><i class="bi bi-lightning-charge-fill me-2"></i>Early Loan Closure Predictor (ML Algorithm)</h5>
+                        <p class="text-muted small mb-0">Estimate how much faster you can close your loan & save interest by making extra payments.</p>
+                    </div>
+                    <span class="badge bg-primary px-3 py-2 fs-6">Linear Regression Model</span>
+                </div>
+                
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-dark small">Select Active Loan</label>
+                        <select id="predictorLoanSelect" class="form-select bg-white" onchange="runEarlyClosurePrediction()">
+                            <!-- Options populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-dark small">Standard Monthly EMI</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light fw-bold">₹</span>
+                            <input type="text" id="predictorStandardEmi" class="form-control bg-light fw-bold" readonly value="0">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-success small">Extra Monthly Payment (₹)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-success text-white fw-bold">+₹</span>
+                            <input type="number" id="predictorExtraInput" class="form-control border-success fw-bold text-success" value="500" min="0" step="500" oninput="runEarlyClosurePrediction()">
+                        </div>
+                    </div>
+                </div>
 
-<div class="d-flex justify-content-between">
+                <div class="row g-3 mt-2">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-white rounded shadow-sm border border-success text-center">
+                            <div class="text-muted small text-uppercase fw-bold">Months Saved</div>
+                            <div class="fs-4 fw-bold text-success" id="predResultMonths">0 Months</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-white rounded shadow-sm border border-primary text-center">
+                            <div class="text-muted small text-uppercase fw-bold">Total Interest Savings</div>
+                            <div class="fs-4 fw-bold text-primary" id="predResultInterest">₹0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-white rounded shadow-sm border border-info text-center">
+                            <div class="text-muted small text-uppercase fw-bold">Predicted Closure Date</div>
+                            <div class="fs-4 fw-bold text-info" id="predResultDate">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-<div>
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3 px-3 flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-credit-card-2-front me-2"></i>My Repayments & EMI Schedule</h5>
+                    <span id="repaymentTableStatusBadge" class="badge bg-success ms-2">Active</span>
+                </div>
+                <div id="repaymentTableBadges" class="d-flex align-items-center gap-2 flex-wrap">
+                    <!-- Dynamic badges populated from original loan data -->
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover text-center align-middle m-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3">INSTALLMENT #</th>
+                                <th>LOAN TYPE</th>
+                                <th>DUE DATE</th>
+                                <th>EMI AMOUNT</th>
+                                <th>PENALTY</th>
+                                <th>STATUS</th>
+                                <th>ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody id="emiBody">
+                            <tr><td colspan="7" class="text-center text-muted py-4"><i class="bi bi-info-circle me-1"></i> Loading EMI repayment schedule...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-<h6>Total EMIs</h6>
-
-<h2>1250</h2>
-
+        <!-- Payment History Log Section -->
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center py-3 px-3 flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2"></i>Payment History Log (Monthly & Extra Payments)</h5>
+                    <span class="badge bg-light text-success fw-bold ms-2" id="paymentHistoryCountBadge">0 Records</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <select class="form-select form-select-sm border-0 fw-bold text-dark" id="paymentHistoryFilter" style="width: auto;" onchange="filterPaymentHistory()">
+                        <option value="all">All Payment Types</option>
+                        <option value="Monthly EMI">Monthly EMIs</option>
+                        <option value="Extra Prepayment">Extra Prepayments</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle m-0 text-center">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3">REF / TRANSACTION ID</th>
+                                <th>LOAN ID</th>
+                                <th>PAYMENT TYPE</th>
+                                <th>PAYMENT DATE</th>
+                                <th>AMOUNT PAID</th>
+                                <th>PRINCIPAL PAID</th>
+                                <th>INTEREST COMPONENT</th>
+                                <th>STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentHistoryBody">
+                            <tr><td colspan="8" class="py-4 text-muted"><i class="bi bi-info-circle me-1"></i> No payment history records found.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div class="icon blue">
+<!-- EMI Payment & Extra Prepayment Modal -->
+<div class="modal fade" id="payEmiModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-credit-card me-2"></i>Make EMI Payment & Extra Prepayment</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="payModalEmiId">
+                <input type="hidden" id="payModalLoanId">
+                <div class="alert alert-light border mb-3">
+                    <div class="d-flex justify-content-between small text-muted">
+                        <span>Installment</span>
+                        <span id="payModalInstNum" class="fw-bold text-dark">-</span>
+                    </div>
+                    <div class="d-flex justify-content-between small text-muted mt-1">
+                        <span>Loan ID</span>
+                        <span id="payModalLoanIdDisp" class="fw-bold text-dark">-</span>
+                    </div>
+                    <div class="d-flex justify-content-between small text-muted mt-1">
+                        <span>Remaining Loan Principal</span>
+                        <span id="payModalRemPrincipalDisp" class="fw-bold text-primary">₹0</span>
+                    </div>
+                </div>
 
-<i class="bi bi-credit-card-2-front-fill"></i>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Standard Monthly EMI (₹)</label>
+                    <input type="number" id="payModalBaseEmi" class="form-control bg-light" readonly>
+                </div>
 
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-success">
+                        <i class="bi bi-plus-circle me-1"></i>Extra Payment / Part Prepayment (₹)
+                    </label>
+                    <input type="number" id="payModalExtraAmount" class="form-control border-success" placeholder="e.g. 5000" min="0" value="0" oninput="calcPayModalTotal()">
+                    <div class="form-text text-muted" id="payModalMaxHint">Entering an extra payment directly reduces your principal balance.</div>
+                </div>
+
+                <div class="p-3 bg-success-subtle rounded border border-success-subtle text-center">
+                    <div class="text-uppercase small text-success fw-bold">Total Payment Amount</div>
+                    <div class="fs-3 fw-bold text-success" id="payModalTotalAmount">₹0</div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success fw-bold px-4" onclick="confirmEmiPayment()"><i class="bi bi-check-circle me-1"></i>Confirm & Pay</button>
+            </div>
+        </div>
+    </div>
 </div>
 
-</div>
-
-</div>
-
-</div>
-
-<div class="col-md-3">
-
-<div class="card p-4">
-
-<div class="d-flex justify-content-between">
-
-<div>
-
-<h6>Paid EMIs</h6>
-
-<h2>1105</h2>
-
-</div>
-
-<div class="icon green">
-
-<i class="bi bi-check-circle-fill"></i>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="col-md-3">
-
-<div class="card p-4">
-
-<div class="d-flex justify-content-between">
-
-<div>
-
-<h6>Due EMIs</h6>
-
-<h2>95</h2>
-
-</div>
-
-<div class="icon orange">
-
-<i class="bi bi-clock-fill"></i>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="col-md-3">
-
-<div class="card p-4">
-
-<div class="d-flex justify-content-between">
-
-<div>
-
-<h6>Overdue EMIs</h6>
-
-<h2>50</h2>
-
-</div>
-
-<div class="icon red">
-
-<i class="bi bi-exclamation-triangle-fill"></i>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="search-box">
-
-<div class="row g-3">
-
-<div class="col-md-5">
-
-<input
-type="text"
-id="searchEmi"
-class="form-control"
-placeholder="Search Loan ID or Customer Name">
-
-</div>
-
-<div class="col-md-4">
-
-<select
-class="form-select"
-id="emiStatus">
-
-<option>All Status</option>
-<option>Paid</option>
-<option>Due</option>
-<option>Overdue</option>
-
-</select>
-
-</div>
-
-<div class="col-md-3 d-grid">
-
-<button class="btn btn-primary">
-
-<i class="bi bi-search"></i>
-
-Search
-
-</button>
-
-</div>
-
-</div>
-
-</div>
-<!-- EMI Monitoring Table -->
-
-<div class="card mt-4">
-
-<div class="card-header bg-primary text-white">
-
-<h5 class="mb-0">
-
-<i class="bi bi-table"></i>
-
-EMI Monitoring
-
-</h5>
-
-</div>
-
-<div class="card-body">
-
-<div class="table-responsive">
-
-<table class="table table-bordered table-hover text-center align-middle">
-
-<thead class="table-primary">
-
-<tr>
-
-<th>Loan ID</th>
-
-<th>Customer</th>
-
-<th>EMI Amount</th>
-
-<th>Due Date</th>
-
-<th>Paid Date</th>
-
-<th>Remaining Balance</th>
-
-<th>Status</th>
-
-<th>Progress</th>
-
-<th>View</th>
-
-</tr>
-
-</thead>
-
-<tbody id="emiTable">
-
-<tr>
-
-<td>LN001</td>
-
-<td>Rahul Kumar</td>
-
-<td>₹8,500</td>
-
-<td>15-Jul-2026</td>
-
-<td>14-Jul-2026</td>
-
-<td>₹65,000</td>
-
-<td>
-
-<span class="badge bg-success">
-
-Paid
-
-</span>
-
-</td>
-
-<td>
-
-<div class="progress">
-
-<div class="progress-bar bg-success" style="width:70%">
-
-70%
-
-</div>
-
-</div>
-
-</td>
-
-<td>
-
-<button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#emiModal">
-
-<i class="bi bi-eye-fill"></i>
-
-</button>
-
-</td>
-
-</tr>
-
-<tr>
-
-<td>LN002</td>
-
-<td>Priya Sharma</td>
-
-<td>₹18,200</td>
-
-<td>20-Jul-2026</td>
-
-<td>-</td>
-
-<td>₹9,80,000</td>
-
-<td>
-
-<span class="badge bg-warning text-dark">
-
-Due
-
-</span>
-
-</td>
-
-<td>
-
-<div class="progress">
-
-<div class="progress-bar bg-warning" style="width:45%">
-
-45%
-
-</div>
-
-</div>
-
-</td>
-
-<td>
-
-<button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#emiModal">
-
-<i class="bi bi-eye-fill"></i>
-
-</button>
-
-</td>
-
-</tr>
-
-<tr>
-
-<td>LN003</td>
-
-<td>Arun Kumar</td>
-
-<td>₹9,200</td>
-
-<td>10-Jul-2026</td>
-
-<td>-</td>
-
-<td>₹2,30,000</td>
-
-<td>
-
-<span class="badge bg-danger">
-
-Overdue
-
-</span>
-
-</td>
-
-<td>
-
-<div class="progress">
-
-<div class="progress-bar bg-danger" style="width:20%">
-
-20%
-
-</div>
-
-</div>
-
-</td>
-
-<td>
-
-<button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#emiModal">
-
-<i class="bi bi-eye-fill"></i>
-
-</button>
-
-</td>
-
-</tr>
-
-<tr>
-
-<td>LN004</td>
-
-<td>Meena</td>
-
-<td>₹15,000</td>
-
-<td>05-Jul-2026</td>
-
-<td>05-Jul-2026</td>
-
-<td>₹0</td>
-
-<td>
-
-<span class="badge bg-primary">
-
-Completed
-
-</span>
-
-</td>
-
-<td>
-
-<div class="progress">
-
-<div class="progress-bar bg-primary" style="width:100%">
-
-100%
-
-</div>
-
-</div>
-
-</td>
-
-<td>
-
-<button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#emiModal">
-
-<i class="bi bi-eye-fill"></i>
-
-</button>
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-</div>
-
-</div>
-
-</div>
-
-<!-- EMI Details Modal -->
-
-<div class="modal fade" id="emiModal" tabindex="-1">
-
-<div class="modal-dialog modal-lg">
-
-<div class="modal-content">
-
-<div class="modal-header bg-primary text-white">
-
-<h5 class="modal-title">
-
-EMI Details
-
-</h5>
-
-<button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-
-</div>
-
-<div class="modal-body">
-
-<table class="table table-bordered">
-
-<tr>
-
-<th>Loan ID</th>
-
-<td>LN001</td>
-
-</tr>
-
-<tr>
-
-<th>Customer Name</th>
-
-<td>Rahul Kumar</td>
-
-</tr>
-
-<tr>
-
-<th>Loan Amount</th>
-
-<td>₹2,00,000</td>
-
-</tr>
-
-<tr>
-
-<th>EMI Amount</th>
-
-<td>₹8,500</td>
-
-</tr>
-
-<tr>
-
-<th>Due Date</th>
-
-<td>15-Jul-2026</td>
-
-</tr>
-
-<tr>
-
-<th>Paid Date</th>
-
-<td>14-Jul-2026</td>
-
-</tr>
-
-<tr>
-
-<th>Remaining Balance</th>
-
-<td>₹65,000</td>
-
-</tr>
-
-<tr>
-
-<th>EMIs Paid</th>
-
-<td>25 / 36</td>
-
-</tr>
-
-<tr>
-
-<th>Next EMI Date</th>
-
-<td>15-Aug-2026</td>
-
-</tr>
-
-<tr>
-
-<th>Status</th>
-
-<td>
-
-<span class="badge bg-success">
-
-Paid
-
-</span>
-
-</td>
-
-</tr>
-
-</table>
-
-</div>
-
-<div class="modal-footer">
-
-<button class="btn btn-secondary" data-bs-dismiss="modal">
-
-Close
-
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-<!-- EMI Collection Chart & AI Insights -->
-
-<div class="row mt-4">
-
-<div class="col-lg-7">
-
-<div class="card p-4">
-
-<h5 class="mb-3">
-
-Monthly EMI Collection
-
-</h5>
-
-<canvas id="emiChart"></canvas>
-
-</div>
-
-</div>
-
-<div class="col-lg-5">
-
-<div class="card p-4">
-
-<h5 class="text-primary">
-
-<i class="bi bi-robot"></i>
-
-AI Insights
-
-</h5>
-
-<hr>
-
-<ul class="list-group list-group-flush">
-
-<li class="list-group-item">
-
-🤖 Expected EMI Collection this month : <b>96%</b>
-
-</li>
-
-<li class="list-group-item">
-
-📢 8 customers require payment reminders.
-
-</li>
-
-<li class="list-group-item">
-
-⚠ 5 EMIs are likely to become overdue.
-
-</li>
-
-<li class="list-group-item">
-
-💰 Estimated Collection : <b>₹18,50,000</b>
-
-</li>
-
-<li class="list-group-item">
-
-✅ AI recommends sending reminder notifications 3 days before the due date.
-
-</li>
-
-</ul>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<!-- Chart.js -->
-
-</div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-</div>
-<script src="emi.js"></script>
-
-<!-- Bootstrap JS -->
-
-</div>
+<script src="common.js"></script>
+<script src="emi.js?v=210"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
-
 </html>
-

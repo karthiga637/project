@@ -65,16 +65,49 @@ public class LoanDAO {
             ps.setDouble(6, Math.round(emi * 100.0) / 100.0);
             ps.setDouble(7, loanAmount);
             ps.setString(8, startDate);
-            ps.setString(9, "Active");
+            ps.setString(9, "Pending"); // Changed from Active to Pending
             int rows = ps.executeUpdate();
 
-            if (rows > 0) {
-                ResultSet keys = ps.getGeneratedKeys();
-                if (keys.next()) {
-                    int loanId = keys.getInt(1);
+            return rows > 0;
+        } catch (Exception e) { e.printStackTrace(); }
+        return false;
+    }
+
+    // Approve Loan
+    public boolean approveLoan(int loanId) {
+        try (Connection con = DBConnection.getConnection()) {
+            // 1. Get loan details to generate EMIs
+            String getSql = "SELECT l.*, c.email, c.first_name, c.last_name FROM loans l JOIN customers c ON l.customer_id = c.id WHERE l.id = ? AND l.status = 'Pending'";
+            PreparedStatement getPs = con.prepareStatement(getSql);
+            getPs.setInt(1, loanId);
+            ResultSet rs = getPs.executeQuery();
+            
+            if (rs.next()) {
+                double loanAmount = rs.getDouble("loan_amount");
+                double emi = rs.getDouble("emi_amount");
+                double interestRate = rs.getDouble("interest_rate");
+                int tenureMonths = rs.getInt("tenure_months");
+                String startDate = rs.getString("start_date");
+                String loanType = rs.getString("loan_type");
+                
+                String customerEmail = rs.getString("email");
+                String customerName = rs.getString("first_name") + " " + rs.getString("last_name");
+                
+                // 2. Update status to Active
+                String updateSql = "UPDATE loans SET status = 'Active' WHERE id = ?";
+                PreparedStatement updatePs = con.prepareStatement(updateSql);
+                updatePs.setInt(1, loanId);
+                int updated = updatePs.executeUpdate();
+                
+                if (updated > 0) {
+                    // 3. Generate EMIs
                     generateEMISchedule(con, loanId, loanAmount, emi, interestRate, tenureMonths, startDate);
+                    
+                    // 4. Send Async Approval Email
+                    EmailService.sendLoanApprovalEmailAsync(customerEmail, customerName, loanAmount, loanType);
+                    
+                    return true;
                 }
-                return true;
             }
         } catch (Exception e) { e.printStackTrace(); }
         return false;
